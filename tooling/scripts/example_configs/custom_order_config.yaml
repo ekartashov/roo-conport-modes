@@ -1,0 +1,24 @@
+# Custom Explicit Ordering Configuration
+# Complete user control over mode ordering
+
+strategy: custom
+
+# Explicit order of modes (remaining modes will be appended alphabetically)
+custom_order:
+  - debug                    # Debugging first for quick issue resolution
+  - code                     # Core development second
+  - architect               # Planning third
+  - prompt-enhancer         # AI assistance fourth
+  - conport-maintenance     # Maintenance fifth
+  - ask                     # Questions sixth
+  - orchestrator            # Coordination seventh
+  - prompt-enhancer-isolated # Specialized tools last
+
+# Priority modes (applied before custom order)
+priority_modes: []
+
+# Exclude specific modes
+exclude_modes: []
+
+# Note: Any modes not listed in custom_order will be appended 
+# alphabetically after the specified modes
