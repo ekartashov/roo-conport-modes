@@ -1,0 +1,28 @@
+# Path Configuration for roo-modes
+# Centralized path definitions to support future reorganizations
+
+paths:
+  core:
+    modes: "core/modes"
+    templates: "core/templates"
+    config: "core/config"
+    
+  tooling:
+    scripts: "tooling/scripts"
+    tools: "tooling/tools"
+    maintenance: "tooling/maintenance"
+    
+  documentation:
+    guides: "documentation/guides"
+    examples: "documentation/examples"
+    analysis: "documentation/analysis"
+    reference: "documentation/reference"
+    
+  data:
+    context_portal: "data/context_portal"
+    cache: "data/cache"
+    
+  tests:
+    unit: "tests/unit"
+    integration: "tests/integration"
+    fixtures: "tests/fixtures"
