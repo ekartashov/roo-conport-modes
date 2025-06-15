@@ -21,10 +21,14 @@ cat ~/.config/VSCodium/User/globalStorage/rooveterinaryinc.roo-cline/settings/cu
 ### 1. Sync Modes to Global Config
 ```bash
 # Preview the sync (recommended first step)
-python scripts/sync-basic.py --dry-run
+python scripts/run_sync.py --dry-run
+# or run as a module
+python -m scripts.sync_system --dry-run
 
 # Perform the actual sync
-python scripts/sync-basic.py
+python scripts/run_sync.py
+# or run as a module
+python -m scripts.sync_system
 
 # Test the sync script
 python scripts/test.py
@@ -68,24 +72,40 @@ For detailed installation instructions, see [Local Mode Installation Guide](docs
 - ConPort MCP server (for ConPort Maintenance mode)
 - VSCodium/VSCode with Roo extension
 
+## Documentation
+
+For detailed information about the project structure, individual modes, guides, and examples, please see our comprehensive documentation:
+
+- **[Project Documentation Hub](docs/README.md)**: Your starting point for all project-related documentation.
+
 ## Usage
 
 ### Available Modes
 
-- **🛠️ Mode Manager** (`mode-manager`) - Interactive creation and management of Roo modes
-- **🪄 Prompt Enhancer** (`prompt-enhancer`) - Refines prompts for better LLM output with project context
-- **🪄 Prompt Enhancer (Isolated)** (`prompt-enhancer-isolated`) - Generic prompt enhancement without project context
-- **🗃️ ConPort Maintenance** (`conport-maintenance`) - Database maintenance and optimization
-- **� Documentation Creator** (`docs-creator`) - Creates structured docs
-- **🔍 Documentation Auditor** (`docs-auditor`) - Audits docs quality
+- **🏗️ Architect** (`architect`) - High-level planning and system design.
+- **❓ Ask** (`ask`) - Answers conceptual or informational questions about software development.
+- **💻 Code** (`code`) - Enhanced code writing, reviewing, and refactoring with ConPort integration.
+- **🗃️ ConPort Maintenance** (`conport-maintenance`) - Database maintenance and optimization for ConPort.
+- **🪲 Debug** (`debug`) - Diagnosis, troubleshooting, and fixing buggy code.
+- **📝 Docs** (`docs`) - Creates, audits, and manages technical documentation.
+- **🛠️ Mode Manager** (`mode-manager`) - Interactive creation and management of Roo modes.
+- **🪃 Orchestrator** (`orchestrator`) - Coordinates complex tasks by delegating to specialized modes.
+- **🪄 Prompt Enhancer** (`prompt-enhancer`) - Refines prompts for better LLM output with project context.
+- **🪄 Prompt Enhancer (Isolated)** (`prompt-enhancer-isolated`) - Generic prompt enhancement without project context.
 
 ### Local Mode Files
 
 This repository now contains local mode definitions in the `modes/` directory:
-- [`code.yaml`](modes/code.yaml) - Enhanced Code mode with automatic ConPort docs (overrides built-in)
-- [`prompt-enhancer.yaml`](modes/prompt-enhancer.yaml) - Project-aware prompt enhancement and structuring
-- [`prompt-enhancer-isolated.yaml`](modes/prompt-enhancer-isolated.yaml) - Generic prompt enhancement without project context
-- [`conport-maintenance.yaml`](modes/conport-maintenance.yaml) - ConPort database management
+- [`architect.yaml`](modes/architect.yaml:0) - High-level planning and system design mode.
+- [`ask.yaml`](modes/ask.yaml:0) - Conceptual and informational question-answering mode.
+- [`code.yaml`](modes/code.yaml:0) - Enhanced Code mode with automatic ConPort docs (overrides built-in).
+- [`conport-maintenance.yaml`](modes/conport-maintenance.yaml:0) - ConPort database management and maintenance mode.
+- [`debug.yaml`](modes/debug.yaml:0) - Code diagnosis and troubleshooting mode.
+- [`docs.yaml`](modes/docs.yaml:0) - Documentation creation, auditing, and management mode.
+- [`mode-manager.yaml`](modes/mode-manager.yaml:0) - Interactive creation and management of Roo modes.
+- [`orchestrator.yaml`](modes/orchestrator.yaml:0) - Strategic workflow orchestration mode.
+- [`prompt-enhancer.yaml`](modes/prompt-enhancer.yaml:0) - Project-aware prompt enhancement and structuring.
+- [`prompt-enhancer-isolated.yaml`](modes/prompt-enhancer-isolated.yaml:0) - Generic prompt enhancement without project context.
 
 ### Project Structure
 
@@ -93,13 +113,30 @@ This repository now contains local mode definitions in the `modes/` directory:
 roo-modes/
 ├── README.md                          # This file
 ├── modes/                             # Local mode definitions
+│   ├── architect.yaml                 # System architecture and planning mode
+│   ├── ask.yaml                       # Q&A mode for software development topics
 │   ├── code.yaml                      # Code mode with enhanced docs (overrides built-in)
+│   ├── conport-maintenance.yaml       # ConPort maintenance mode
+│   ├── debug.yaml                     # Debugging and troubleshooting mode
+│   ├── docs.yaml                      # Documentation mode (creator & auditor)
+│   ├── mode-manager.yaml              # Mode management mode
+│   ├── orchestrator.yaml              # Workflow orchestration mode
 │   ├── prompt-enhancer.yaml           # Project-aware prompt enhancement mode
-│   ├── prompt-enhancer-isolated.yaml  # Generic prompt enhancement mode
-│   └── conport-maintenance.yaml       # ConPort maintenance mode
+│   └── prompt-enhancer-isolated.yaml  # Generic prompt enhancement mode
 ├── scripts/                           # Utility and automation scripts
-│   ├── sync-basic.py # Mode configuration sync script
-│   └── test.py             # Test suite for sync script
+│   ├── run_sync.py                    # Convenience runner for the sync system
+│   ├── sync_system/                   # Consolidated sync system package
+│   │   ├── __init__.py                # Package initialization
+│   │   ├── __main__.py                # Module entry point
+│   │   ├── pyproject.toml             # Package build configuration
+│   │   ├── sync.py                    # Main sync implementation with relative path detection
+│   │   └── tests/                     # Test suite for sync system
+│   │       ├── __init__.py            # Test package initialization
+│   │       ├── test_discovery.py      # Tests for mode discovery
+│   │       ├── test_integration.py    # Integration tests
+│   │       ├── test_ordering.py       # Tests for mode ordering
+│   │       └── test_validation.py     # Tests for mode validation
+│   └── test.py                        # Test suite for original sync script (legacy)
 ├── tools/                             # Development and demonstration tools
 │   └── demo.py         # YAML output format demo
 ├── docs/                              # Detailed docs
@@ -202,17 +239,25 @@ cp templates/basic-mode-template.yaml my-new-mode.yaml
 
 ## Contributing
 
-1. Use Mode Manager for interactive mode creation
-2. Follow templates for consistency
-3. Test thoroughly with real scenarios
-4. Document mode purpose and usage patterns
-5. Validate against existing mode ecosystem
+We welcome contributions! Please see our **[Contributing Guidelines](CONTRIBUTING.md)** for detailed information on how to get involved, report issues, and submit pull requests.
+
+All contributors are expected to adhere to our **[Code of Conduct](CODE_OF_CONDUCT.md)**.
+
+### Quick Summary for Mode Contributions:
+1. Use Mode Manager for interactive mode creation.
+2. Follow templates in the [`templates/`](templates/) directory for consistency.
+3. Test thoroughly with real-world scenarios.
+4. Document the mode's purpose, usage patterns, and any specific examples in the [`docs/`](docs/) directory.
+5. Validate your new mode against the existing mode ecosystem to ensure compatibility and avoid conflicts.
 
 ## Development Tools
 
 ### Scripts ([`scripts/`](scripts/))
-- **[`sync-basic.py`](scripts/sync-basic.py)** - Sync local modes to global configuration with validation
-- **[`test.py`](scripts/test.py)** - Comprehensive test suite for sync validation
+- **[`run_sync.py`](scripts/run_sync.py)** - Convenience runner for the sync system
+- **[`sync_system/`](scripts/sync_system/)** - Consolidated sync system as a Python package
+  - **[`sync.py`](scripts/sync_system/sync.py)** - Main sync implementation with relative path detection
+  - **[`tests/`](scripts/sync_system/tests/)** - Test suite for sync system
+- **[`test.py`](scripts/test.py)** - Test suite for original sync script (legacy)
 
 ### Tools ([`tools/`](tools/))
 - **[`demo.py`](tools/demo.py)** - Demonstrate enhanced YAML output format
@@ -224,14 +269,14 @@ cp templates/basic-mode-template.yaml my-new-mode.yaml
 - [Prompt Enhancer Guide](docs/guides/prompt-enhancer-guide.md) - Project-aware prompt enhancement workflows and techniques
 - [Prompt Enhancer (Isolated) Guide](docs/guides/prompt-enhancer-isolated-guide.md) - Generic prompt enhancement without project context
 - [ConPort Maintenance Guide](docs/guides/conport-maintenance-guide.md) - Database maintenance procedures and best practices
-- [Enhanced Code Guide](docs/guides/code-guide.md) - Coding with automatic knowledge docs
+- [Enhanced Code Guide](docs/guides/code-enhanced-guide.md) - Coding with automatic knowledge docs
 - [Local Mode Installation](docs/guides/local-mode-installation.md) - Installation guide for local mode definitions
 
 ### Examples and Workflows
-- [Mode Manager Examples](docs/docs/examples/mode-manager-examples.md) - Real-world mode creation scenarios
-- [Prompt Enhancer Examples](docs/docs/examples/prompt-enhancer-examples.md) - Project-aware prompt enhancement sessions
-- [Prompt Enhancer (Isolated) Examples](docs/docs/examples/prompt-enhancer-isolated-examples.md) - Generic prompt enhancement workflows
-- [ConPort Maintenance Examples](docs/docs/examples/conport-maintenance-examples.md) - Database maintenance and optimization workflows
+- [Mode Manager Examples](docs/examples/mode-manager-examples.md) - Real-world mode creation scenarios
+- [Prompt Enhancer Examples](docs/examples/prompt-enhancer-examples.md) - Project-aware prompt enhancement sessions
+- [Prompt Enhancer (Isolated) Examples](docs/examples/prompt-enhancer-isolated-examples.md) - Generic prompt enhancement workflows
+- [ConPort Maintenance Examples](docs/examples/conport-maintenance-examples.md) - Database maintenance and optimization workflows
 
 ### Templates and Analysis
 - [Mode Templates](templates/) - Starting points for creating new modes
