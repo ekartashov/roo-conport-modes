@@ -1,15 +1,25 @@
 #!/usr/bin/env python3
 """
 Mode discovery and categorization functionality.
+
+Provides functionality for discovering and categorizing mode YAML files:
+- Dynamic file discovery from directory
+- Categorization based on naming patterns
+- Basic validation of mode files
+- Robust path handling
 """
 
 import re
+import os
+import logging
 from pathlib import Path
 import yaml
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Set, Tuple
 
 from ..exceptions import DiscoveryError
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class ModeDiscovery:
     """Handles dynamic discovery and categorization of mode files."""
@@ -23,6 +33,7 @@ class ModeDiscovery:
         """
         self.modes_dir = modes_dir
         
+        # Define category patterns for mode slugs
         self.category_patterns = {
             'core': [r'^(code|architect|debug|ask|orchestrator|docs)$'],
             'enhanced': [r'.*-enhanced$', r'.*-plus$'],
@@ -33,6 +44,8 @@ class ModeDiscovery:
                 r'.*-auditor$'
             ]
         }
+        
+        logger.debug(f"Initialized ModeDiscovery with directory: {self.modes_dir}")
     
     def discover_all_modes(self) -> Dict[str, List[str]]:
         """
@@ -48,25 +61,45 @@ class ModeDiscovery:
             'discovered': []
         }
         
+        # Handle non-existent directory gracefully
         if not self.modes_dir.exists():
+            logger.warning(f"Modes directory does not exist: {self.modes_dir}")
             return categorized_modes
         
-        yaml_files = list(self.modes_dir.glob("*.yaml"))
+        # Handle case where modes_dir is not a directory
+        if not self.modes_dir.is_dir():
+            logger.warning(f"Modes path is not a directory: {self.modes_dir}")
+            return categorized_modes
         
+        # Get all YAML files in the directory
+        try:
+            yaml_files = list(self.modes_dir.glob("*.yaml"))
+            logger.debug(f"Found {len(yaml_files)} YAML files in {self.modes_dir}")
+        except Exception as e:
+            logger.error(f"Error accessing modes directory {self.modes_dir}: {str(e)}")
+            return categorized_modes
+        
+        # Process each YAML file
         for yaml_file in yaml_files:
             mode_slug = yaml_file.stem
             
             # Skip if not a valid YAML file that can be loaded
             if not self._is_valid_mode_file(yaml_file):
+                logger.warning(f"Skipping invalid mode file: {yaml_file}")
                 continue
             
+            # Categorize the mode based on its slug
             category = self.categorize_mode(mode_slug)
             categorized_modes[category].append(mode_slug)
+            logger.debug(f"Categorized {mode_slug} as {category}")
         
         # Sort within categories for consistency
         for category in categorized_modes:
             categorized_modes[category].sort()
         
+        # Log discovery results
+        total_modes = sum(len(modes) for modes in categorized_modes.values())
+        logger.info(f"Discovered {total_modes} valid modes across {len(categorized_modes)} categories")
         return categorized_modes
     
     def categorize_mode(self, mode_slug: str) -> str:
@@ -97,14 +130,41 @@ class ModeDiscovery:
             True if valid, False otherwise
         """
         try:
+            if not yaml_file.exists() or not yaml_file.is_file():
+                logger.debug(f"Mode file does not exist or is not a file: {yaml_file}")
+                return False
+                
             with open(yaml_file, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
                 
+            # Check if config is None or not a dictionary
+            if config is None or not isinstance(config, dict):
+                logger.debug(f"Mode file has invalid YAML structure: {yaml_file}")
+                return False
+                
             # Basic validation - must have required fields
             required_fields = ['slug', 'name', 'roleDefinition', 'groups']
-            return all(field in config for field in required_fields)
             
-        except (yaml.YAMLError, FileNotFoundError, KeyError):
+            for field in required_fields:
+                if field not in config:
+                    logger.debug(f"Mode file missing required field '{field}': {yaml_file}")
+                    return False
+                    
+            # Additional validation for groups field
+            if not isinstance(config['groups'], list) or not config['groups']:
+                logger.debug(f"Mode file has invalid 'groups' field: {yaml_file}")
+                return False
+                
+            return True
+            
+        except yaml.YAMLError as e:
+            logger.debug(f"YAML parsing error in {yaml_file}: {str(e)}")
+            return False
+        except (FileNotFoundError, PermissionError) as e:
+            logger.debug(f"File access error for {yaml_file}: {str(e)}")
+            return False
+        except Exception as e:
+            logger.debug(f"Unexpected error validating {yaml_file}: {str(e)}")
             return False
 
     def get_mode_count(self) -> int:
@@ -146,3 +206,73 @@ class ModeDiscovery:
                 'description': 'Additional modes found'
             }
         }
+        
+    def find_mode_by_name(self, name: str) -> Optional[str]:
+        """
+        Find a mode slug by its display name (case-insensitive partial match).
+        
+        Args:
+            name: The display name to search for
+            
+        Returns:
+            Mode slug if found, None otherwise
+        """
+        if not self.modes_dir.exists() or not self.modes_dir.is_dir():
+            return None
+            
+        name_lower = name.lower()
+        
+        for yaml_file in self.modes_dir.glob("*.yaml"):
+            try:
+                with open(yaml_file, 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f)
+                    
+                if (config and isinstance(config, dict) and 
+                    'name' in config and isinstance(config['name'], str) and
+                    name_lower in config['name'].lower()):
+                    return yaml_file.stem
+                    
+            except Exception:
+                # Skip files with errors
+                continue
+                
+        return None
+        
+    def get_mode_info(self, mode_slug: str) -> Optional[Dict[str, Any]]:
+        """
+        Get information about a specific mode.
+        
+        Args:
+            mode_slug: The mode slug to get information for
+            
+        Returns:
+            Dictionary with mode information if found, None otherwise
+        """
+        mode_file = self.modes_dir / f"{mode_slug}.yaml"
+        
+        if not mode_file.exists() or not mode_file.is_file():
+            return None
+            
+        try:
+            with open(mode_file, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                
+            if not self._is_valid_mode_file(mode_file):
+                return None
+                
+            category = self.categorize_mode(mode_slug)
+            
+            # Add category to the mode info
+            info = {
+                'slug': mode_slug,
+                'name': config.get('name', ''),
+                'category': category,
+                'roleDefinition': config.get('roleDefinition', ''),
+                'whenToUse': config.get('whenToUse', ''),
+                'groups': config.get('groups', [])
+            }
+            
+            return info
+            
+        except Exception:
+            return None

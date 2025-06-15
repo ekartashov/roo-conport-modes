@@ -37,10 +37,15 @@ dev = [
 ]
 
 [project.scripts]
-roo-modes = "scripts.roo_modes_sync.cli:main"
+roo-modes = "roo_modes_sync.cli:main"
 
 [tool.setuptools]
-packages = ["scripts.roo_modes_sync"]
+# Corrected to make it a standalone package
+package-dir = {"" = "."}
+packages = ["roo_modes_sync", 
+           "roo_modes_sync.core", 
+           "roo_modes_sync.config", 
+           "roo_modes_sync.tests"]
 
 [tool.black]
 line-length = 88
@@ -58,7 +63,8 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
 [tool.pytest.ini_options]
-testpaths = ["scripts/roo_modes_sync/tests"]
+# Updated to reference the package's test directory directly
+testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"

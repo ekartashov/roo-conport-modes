@@ -12,13 +12,18 @@ Provides functionality for synchronizing mode configurations:
 import yaml
 import shutil
 import os
+import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union, Tuple
 
 from ..exceptions import SyncError, ConfigurationError
 from .discovery import ModeDiscovery
-from .validation import ModeValidator
+from .validation import ModeValidator, ValidationLevel, ValidationResult
 from .ordering import OrderingStrategyFactory
+
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class ModeSync:
@@ -38,18 +43,69 @@ class ModeSync:
     LOCAL_CONFIG_DIR = ".roomodes"
     LOCAL_CONFIG_FILE = "modes.yaml"
     
-    def __init__(self, modes_dir: Path):
+    # Environment variable names
+    ENV_MODES_DIR = "ROO_MODES_DIR"
+    ENV_CONFIG_PATH = "ROO_MODES_CONFIG"
+    ENV_VALIDATION_LEVEL = "ROO_MODES_VALIDATION_LEVEL"
+    
+    def __init__(self, modes_dir: Optional[Path] = None):
         """
         Initialize with modes directory path.
         
         Args:
             modes_dir: Path to directory containing mode YAML files
+                       If None, will try to use ROO_MODES_DIR environment variable
         """
-        self.modes_dir = modes_dir
+        # Get modes directory from env var if not provided
+        if modes_dir is None and self.ENV_MODES_DIR in os.environ:
+            modes_dir = Path(os.environ[self.ENV_MODES_DIR])
+        
+        # Ensure modes_dir is an absolute path
+        if modes_dir is not None:
+            self.modes_dir = Path(modes_dir).absolute()
+        else:
+            # No modes_dir provided or in env var, use current directory as fallback
+            self.modes_dir = Path.cwd() / "modes"
+            logger.warning(f"No modes directory specified, using default: {self.modes_dir}")
+        
         self.global_config_path = None
         self.local_config_path = None
-        self.discovery = ModeDiscovery(modes_dir)
+        self.discovery = ModeDiscovery(self.modes_dir)
         self.validator = ModeValidator()
+        
+        # Set validation level from environment if specified
+        if self.ENV_VALIDATION_LEVEL in os.environ:
+            level_name = os.environ[self.ENV_VALIDATION_LEVEL].upper()
+            try:
+                level = ValidationLevel[level_name]
+                self.validator.set_validation_level(level)
+                logger.info(f"Set validation level to {level_name} from environment variable")
+            except KeyError:
+                logger.warning(f"Invalid validation level in environment: {level_name}")
+        
+        # Set config path from environment if specified
+        if self.ENV_CONFIG_PATH in os.environ:
+            self.set_global_config_path(Path(os.environ[self.ENV_CONFIG_PATH]))
+        
+        # Initialize options with defaults
+        self.options = {
+            "continue_on_validation_error": False,
+            "collect_warnings": True,
+            "validation_level": None  # Use validator's default
+        }
+    
+    def set_options(self, options: Dict[str, Any]) -> None:
+        """
+        Set options for the sync operation.
+        
+        Args:
+            options: Dictionary of options
+        """
+        self.options.update(options)
+        
+        # Apply validation level if specified
+        if "validation_level" in options and options["validation_level"] is not None:
+            self.validator.set_validation_level(options["validation_level"])
         
     def set_global_config_path(self, config_path: Optional[Path] = None) -> None:
         """
@@ -58,8 +114,17 @@ class ModeSync:
         Args:
             config_path: Path to the global config file or None to use default
         """
-        self.global_config_path = config_path or self.DEFAULT_GLOBAL_CONFIG_PATH
+        if config_path is None:
+            # Try environment variable first
+            if self.ENV_CONFIG_PATH in os.environ:
+                config_path = Path(os.environ[self.ENV_CONFIG_PATH])
+            else:
+                config_path = self.DEFAULT_GLOBAL_CONFIG_PATH
+        
+        # Ensure path is absolute
+        self.global_config_path = Path(config_path).absolute()
         self.local_config_path = None  # Reset local path
+        logger.debug(f"Set global config path: {self.global_config_path}")
         
     def set_local_config_path(self, project_dir: Path) -> None:
         """
@@ -68,10 +133,13 @@ class ModeSync:
         Args:
             project_dir: Path to the project directory
         """
+        # Ensure path is absolute
+        project_dir = Path(project_dir).absolute()
         self.validate_target_directory(project_dir)
         config_dir = project_dir / self.LOCAL_CONFIG_DIR
         self.local_config_path = config_dir / self.LOCAL_CONFIG_FILE
         self.global_config_path = None  # Reset global path
+        logger.debug(f"Set local config path: {self.local_config_path}")
         
     def validate_target_directory(self, directory: Path) -> bool:
         """
@@ -111,9 +179,12 @@ class ModeSync:
         
         try:
             config_dir.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created local mode directory: {config_dir}")
             return True
         except Exception as e:
-            raise SyncError(f"Failed to create local mode directory: {e}")
+            error_msg = f"Failed to create local mode directory: {e}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
         
     def load_mode_config(self, slug: str) -> Dict[str, Any]:
         """
@@ -131,24 +202,52 @@ class ModeSync:
         mode_file = self.modes_dir / f"{slug}.yaml"
         
         if not mode_file.exists():
-            raise SyncError(f"Mode file not found: {mode_file}")
+            error_msg = f"Mode file not found: {mode_file}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
             
         try:
             with open(mode_file, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
                 
             # Validate the configuration
-            self.validator.validate_mode_config(config, str(mode_file))
+            if self.options.get("collect_warnings", False):
+                result = self.validator.validate_mode_config(
+                    config, 
+                    str(mode_file),
+                    collect_warnings=True
+                )
+                
+                if not result.valid:
+                    error_msgs = [w["message"] for w in result.warnings if w["level"] == "error"]
+                    if error_msgs:
+                        error_msg = f"Validation errors in {slug}:\n" + "\n".join(error_msgs)
+                        logger.error(error_msg)
+                        if not self.options.get("continue_on_validation_error", False):
+                            raise SyncError(error_msg)
+                
+                # Log warnings
+                for warning in result.warnings:
+                    if warning["level"] != "error":
+                        logger.warning(f"{slug}: {warning['message']}")
+            else:
+                # Standard validation without warning collection
+                self.validator.validate_mode_config(config, str(mode_file))
                 
             # Ensure source is set to 'global'
             config['source'] = 'global'
             
+            logger.debug(f"Successfully loaded and validated mode: {slug}")
             return config
             
         except yaml.YAMLError as e:
-            raise SyncError(f"Error parsing YAML for {slug}: {e}")
+            error_msg = f"Error parsing YAML for {slug}: {e}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
         except Exception as e:
-            raise SyncError(f"Error loading {slug}: {e}")
+            error_msg = f"Error loading {slug}: {e}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
     
     def create_global_config(self, strategy_name: str = 'strategic',
                            options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -169,31 +268,45 @@ class ModeSync:
         
         # Discover all modes
         categorized_modes = self.discovery.discover_all_modes()
+        logger.info(f"Discovered {sum(len(modes) for modes in categorized_modes.values())} modes in {len(categorized_modes)} categories")
         
         # Create ordering strategy
         try:
             strategy_factory = OrderingStrategyFactory()
             strategy = strategy_factory.create_strategy(strategy_name)
+            logger.debug(f"Using {strategy_name} ordering strategy")
         except Exception as e:
-            raise SyncError(f"Failed to create ordering strategy: {e}")
+            error_msg = f"Failed to create ordering strategy: {e}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
         
         # Get ordered mode list
         ordered_mode_slugs = strategy.order_modes(categorized_modes, options)
+        logger.debug(f"Ordered mode slugs: {ordered_mode_slugs}")
         
         # Apply exclusion filter directly here as well (in case strategy didn't)
         if 'exclude' in options and options['exclude']:
             excluded_modes = set(options['exclude'])
             ordered_mode_slugs = [mode for mode in ordered_mode_slugs if mode not in excluded_modes]
+            logger.info(f"Excluded modes: {excluded_modes}")
+        
+        # Count of successful and failed mode loads
+        success_count = 0
+        failure_count = 0
         
         # Load modes in the specified order
         for mode_slug in ordered_mode_slugs:
             try:
                 mode_config = self.load_mode_config(mode_slug)
                 config['customModes'].append(mode_config)
-            except SyncError:
+                success_count += 1
+            except SyncError as e:
+                logger.warning(f"Skipping mode {mode_slug}: {e}")
+                failure_count += 1
                 # Skip modes that fail to load
-                pass
+                continue
         
+        logger.info(f"Loaded {success_count} modes successfully, {failure_count} failed")
         return config
     
     def format_multiline_string(self, text: str, indent: int = 2) -> str:
@@ -232,15 +345,20 @@ class ModeSync:
         config_path = self.local_config_path if self.local_config_path else self.global_config_path
         
         if not config_path:
-            raise SyncError("No config path set (neither global nor local)")
+            error_msg = "No config path set (neither global nor local)"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
             
         if config_path.exists() and config_path.stat().st_size > 0:
             backup_path = config_path.with_suffix('.yaml.backup')
             try:
                 shutil.copy2(config_path, backup_path)
+                logger.info(f"Created backup: {backup_path}")
                 return True
             except Exception as e:
-                raise SyncError(f"Could not create backup: {e}")
+                error_msg = f"Could not create backup: {e}"
+                logger.error(error_msg)
+                raise SyncError(error_msg)
         
         return True
     
@@ -262,7 +380,9 @@ class ModeSync:
         config_path = self.local_config_path if self.local_config_path else self.global_config_path
         
         if not config_path:
-            raise SyncError("No config path set (neither global nor local)")
+            error_msg = "No config path set (neither global nor local)"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
             
         try:
             # Ensure the parent directory exists
@@ -298,10 +418,13 @@ class ModeSync:
             with open(config_path, 'w', encoding='utf-8') as f:
                 f.write(yaml_content)
             
+            logger.info(f"Wrote configuration to {config_path}")
             return True
             
         except Exception as e:
-            raise SyncError(f"Error writing configuration: {e}")
+            error_msg = f"Error writing configuration: {e}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
     
     def write_global_config(self, config: Dict[str, Any]) -> bool:
         """
@@ -315,7 +438,9 @@ class ModeSync:
             True if write succeeded, False otherwise
         """
         if not self.global_config_path:
-            raise SyncError("Global config path not set")
+            error_msg = "Global config path not set"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
             
         self.local_config_path = None  # Ensure we're writing to global
         return self.write_config(config)
@@ -337,44 +462,61 @@ class ModeSync:
         if options is None:
             options = {}
             
+        # Merge with global options
+        merged_options = self.options.copy()
+        merged_options.update(options)
+        options = merged_options
+            
         # Check if modes directory exists
         if not self.modes_dir.exists():
-            raise SyncError(f"Modes directory not found: {self.modes_dir}")
+            error_msg = f"Modes directory not found: {self.modes_dir}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
             
         # Ensure we have a config path set (either global or local)
         if not self.global_config_path and not self.local_config_path:
-            raise SyncError("No config path set (neither global nor local)")
+            error_msg = "No config path set (neither global nor local)"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
             
         # Create local directory structure if needed
         if self.local_config_path and not dry_run:
             try:
                 self.create_local_mode_directory()
-            except SyncError:
+            except SyncError as e:
+                logger.error(f"Failed to create local directory: {e}")
                 return False
         
         # Create backup if not dry run
         if not dry_run:
             try:
                 self.backup_existing_config()
-            except SyncError:
+            except SyncError as e:
+                logger.warning(f"Could not create backup: {e}")
                 # Continue without backup
-                pass
         
         # Create configuration
         try:
+            logger.info(f"Creating configuration with {strategy_name} strategy")
             config = self.create_global_config(strategy_name, options)
             
             if not config['customModes']:
+                logger.error("No valid modes found")
                 return False
             
             # Write configuration if not dry run
             if not dry_run:
+                logger.info("Writing configuration")
                 return self.write_config(config)
+            else:
+                logger.info("Dry run - not writing configuration")
             
             return True
                 
         except Exception as e:
-            raise SyncError(f"Sync failed: {e}")
+            error_msg = f"Sync failed: {e}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
             
     def get_sync_status(self) -> Dict[str, Any]:
         """
@@ -452,7 +594,7 @@ class ModeSync:
                     'error': 'Missing required parameter: target'
                 }
                 
-            target_path = Path(params['target'])
+            target_path = Path(params['target']).absolute()
             
             # Validate target directory
             try:
@@ -469,6 +611,16 @@ class ModeSync:
             # Get strategy and options
             strategy = params.get('strategy', 'strategic')
             options = params.get('options', {})
+            
+            # Set validation level if specified
+            if 'validation_level' in params:
+                try:
+                    level_name = params['validation_level'].upper()
+                    level = ValidationLevel[level_name]
+                    self.validator.set_validation_level(level)
+                    logger.info(f"Set validation level to {level_name} from params")
+                except (KeyError, AttributeError):
+                    logger.warning(f"Invalid validation level in params: {params.get('validation_level')}")
             
             # Perform sync
             success = self.sync_modes(strategy_name=strategy, options=options)

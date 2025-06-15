@@ -30,11 +30,14 @@ class OrderingStrategy:
         # Apply strategy-specific ordering
         ordered_modes = self._apply_strategy(categorized_modes, options)
         
+        # Get excluded modes before applying filters
+        excluded_modes = set(options.get('exclude', []))
+        
         # Apply common filters
         ordered_modes = self._apply_filters(ordered_modes, options)
         
-        # Ensure all modes are included - add any missing
-        missing_modes = [mode for mode in all_mode_slugs if mode not in ordered_modes]
+        # Ensure all non-excluded modes are included - add any missing
+        missing_modes = [mode for mode in all_mode_slugs if mode not in ordered_modes and mode not in excluded_modes]
         ordered_modes.extend(missing_modes)
         
         return ordered_modes
