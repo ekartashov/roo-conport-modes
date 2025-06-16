@@ -13,7 +13,7 @@ The Adaptive Knowledge Application Framework (AKAF) is a system for intelligentl
 ## Directory Structure
 
 ```
-utilities/phase-4/akaf/
+utilities/frameworks/akaf/
 ├── akaf-validation.js  - Validation layer for ensuring quality
 ├── akaf-core.js        - Core adaptation and application logic
 ├── akaf-integration.js - Integration with ConPort and other systems
@@ -26,7 +26,7 @@ utilities/phase-4/akaf/
 ### Basic Usage
 
 ```javascript
-const akaf = require('./utilities/phase-4/akaf');
+const akaf = require('./utilities/frameworks/akaf');
 
 // Initialize AKAF with a ConPort client
 const akafInstance = akaf.initializeAKAF({
@@ -92,7 +92,7 @@ const {
   AdaptiveKnowledgeController, 
   ConPortKnowledgeRetriever,
   AKAFIntegration 
-} = require('./utilities/phase-4/akaf');
+} = require('./utilities/frameworks/akaf');
 
 // Create custom components
 class CustomKnowledgeRetriever extends ConPortKnowledgeRetriever {
@@ -156,4 +156,4 @@ AKAF works with other Phase 4 components:
 
 ## Further Information
 
-For more detailed information, see the [AKAF Architecture Documentation](../../../docs/phase-4/akaf-architecture.md).
+For more detailed information, see the [Frameworks Overview](../README.md) and [Main Utilities Documentation](../../README.md).

@@ -77,7 +77,7 @@ CCF follows a three-layer architecture pattern:
 ### Basic Usage
 
 ```javascript
-const { CCFIntegration } = require('./utilities/phase-4/ccf');
+const { CCFIntegration } = require('./utilities/frameworks/ccf');
 
 // Create an integration instance
 const ccf = new CCFIntegration({
@@ -314,7 +314,7 @@ CCF provides several strategies for merging context states:
 To run tests:
 
 ```bash
-cd utilities/phase-4/ccf
+cd utilities/frameworks/ccf
 node tests/ccf.test.js
 ```
 

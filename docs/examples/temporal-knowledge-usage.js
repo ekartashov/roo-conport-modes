@@ -1,600 +1,283 @@
 /**
- * Temporal Knowledge Management Usage Example
+ * Example usage of the Temporal Knowledge Management system
  * 
- * This example demonstrates how to use the Temporal Knowledge Management component
- * to track knowledge artifact versions, dependencies, and lifecycle states over time.
+ * This example demonstrates how to use the Temporal Knowledge Management
+ * system to track, retrieve, and analyze knowledge artifacts across time.
  */
 
-// Import required modules
-const { createTemporalKnowledge } = require('../utilities/phase-3/temporal-knowledge-management/temporal-knowledge');
+// Import the temporal knowledge management system
+const { createTemporalKnowledgeManager } = require('../../utilities/phase-3/temporal-knowledge-management/temporal-knowledge');
 
-// Mock ConPort client for demonstration purposes
+// Mock ConPort client for the example
 const mockConPortClient = {
-  log_custom_data: async (args) => ({ 
-    saved: true, 
-    category: args.category, 
-    key: args.key 
-  }),
-  get_custom_data: async (args) => {
-    if (args.category === 'temporal_knowledge_indexes' && args.key === 'decision_123_incoming') {
-      return {
-        artifactType: 'decision',
-        artifactId: '123',
-        direction: 'incoming',
-        dependencies: [
-          { dependencyId: 'pattern_456_references_decision_123', addedAt: '2025-01-01T00:00:00.000Z' }
-        ]
-      };
-    } else if (args.category === 'temporal_knowledge_dependencies' && 
-               args.key === 'pattern_456_references_decision_123') {
-      return {
-        dependencyId: 'pattern_456_references_decision_123',
-        sourceType: 'pattern',
-        sourceId: '456',
-        targetType: 'decision',
-        targetId: '123',
-        dependencyType: 'references',
-        strength: 'high',
-        metadata: { createdAt: '2025-01-01T00:00:00.000Z' }
-      };
-    } else if (args.category === 'temporal_knowledge_versions' && args.key) {
-      // Return mock version data based on key
-      const [type, id, timestamp] = args.key.split('_');
-      return {
-        versionId: args.key,
-        artifactType: type,
-        artifactId: id,
-        content: { mockData: `Version from ${new Date(parseInt(timestamp)).toISOString()}` },
-        metadata: {
-          createdAt: new Date(parseInt(timestamp)).toISOString()
-        },
-        tags: ['example'],
-        lifecycleState: 'active'
-      };
-    } else if (args.category === 'temporal_knowledge_indexes' && args.key === 'document_abc') {
-      return {
-        artifactType: 'document',
-        artifactId: 'abc',
-        versions: [
-          { versionId: 'document_abc_1715000000000', timestamp: '2025-05-06T12:00:00.000Z' },
-          { versionId: 'document_abc_1714000000000', timestamp: '2025-04-24T12:00:00.000Z' },
-          { versionId: 'document_abc_1713000000000', timestamp: '2025-04-12T12:00:00.000Z' }
-        ],
-        latestVersionId: 'document_abc_1715000000000',
-        lifecycleState: 'active',
-        updatedAt: '2025-05-06T12:00:00.000Z',
-        stateHistory: [
-          {
-            from: 'draft',
-            to: 'review',
-            timestamp: '2025-04-18T12:00:00.000Z',
-            reason: 'Ready for review'
-          },
-          {
-            from: 'review',
-            to: 'active',
-            timestamp: '2025-04-26T12:00:00.000Z',
-            reason: 'Approved by review team'
-          }
-        ]
-      };
-    }
-    return null;
+  async get_active_context({ workspace_id }) {
+    console.log(`[ConPort] Getting active context for workspace ${workspace_id}`);
+    return { current_focus: 'API Development' };
   },
-  log_decision: async (args) => ({
-    id: `decision-${Date.now()}`,
-    summary: args.summary,
-    created: true
-  }),
-  log_system_pattern: async (args) => ({
-    id: `pattern-${Date.now()}`,
-    name: args.name,
-    created: true
-  })
+  
+  async update_active_context({ workspace_id, patch_content }) {
+    console.log(`[ConPort] Updating active context for workspace ${workspace_id}`);
+    console.log(`[ConPort] Patch content: ${JSON.stringify(patch_content, null, 2)}`);
+    return { success: true };
+  },
+  
+  async log_decision({ workspace_id, summary, rationale, tags }) {
+    console.log(`[ConPort] Logging decision for workspace ${workspace_id}`);
+    console.log(`[ConPort] Decision: ${summary}`);
+    return { id: Math.floor(Math.random() * 1000), summary, rationale, tags };
+  },
+  
+  async get_decisions({ workspace_id }) {
+    console.log(`[ConPort] Getting decisions for workspace ${workspace_id}`);
+    return [
+      { id: 123, summary: 'Use GraphQL for API', rationale: 'Better query flexibility', tags: ['API', 'architecture'], timestamp: '2025-01-15T10:30:00Z' },
+      { id: 124, summary: 'Implement JWT Authentication', rationale: 'Stateless authentication for scalability', tags: ['security', 'API'], timestamp: '2025-01-16T14:45:00Z' }
+    ];
+  },
+  
+  async log_system_pattern({ workspace_id, name, description, tags }) {
+    console.log(`[ConPort] Logging system pattern for workspace ${workspace_id}`);
+    console.log(`[ConPort] Pattern: ${name}`);
+    return { id: Math.floor(Math.random() * 1000), name, description, tags };
+  },
+  
+  async get_system_patterns({ workspace_id }) {
+    console.log(`[ConPort] Getting system patterns for workspace ${workspace_id}`);
+    return [
+      { id: 234, name: 'Repository Pattern', description: 'Abstract data access', tags: ['architecture', 'data-access'], timestamp: '2025-01-20T09:15:00Z' }
+    ];
+  },
+  
+  async log_custom_data({ workspace_id, category, key, value }) {
+    console.log(`[ConPort] Logging custom data for workspace ${workspace_id}`);
+    console.log(`[ConPort] Category: ${category}, Key: ${key}`);
+    return { success: true };
+  },
+  
+  async get_custom_data({ workspace_id, category, key }) {
+    console.log(`[ConPort] Getting custom data for workspace ${workspace_id}`);
+    if (category === 'temporal_versions') {
+      return { value: [] }; // Empty versions for example purposes
+    }
+    return { value: { example: 'data' } };
+  },
+  
+  async get_item_history({ workspace_id, item_type }) {
+    console.log(`[ConPort] Getting item history for ${item_type} in workspace ${workspace_id}`);
+    if (item_type === 'product_context') {
+      return [
+        { version: 1, timestamp: '2025-01-01T09:00:00Z', content: { project_name: 'API Project', stage: 'planning' } },
+        { version: 2, timestamp: '2025-01-10T14:30:00Z', content: { project_name: 'API Project', stage: 'development', key_features: ['Authentication', 'Data Access'] } },
+        { version: 3, timestamp: '2025-01-20T11:15:00Z', content: { project_name: 'API Project', stage: 'testing', key_features: ['Authentication', 'Data Access', 'Rate Limiting'] } }
+      ];
+    }
+    return [];
+  }
 };
 
-// Initialize the Temporal Knowledge Management system
-const temporalKnowledge = createTemporalKnowledge({
-  workspaceId: '/example/workspace',
-  conPortClient: mockConPortClient,
-  enableValidation: true,
-  strictMode: false
-});
-
-/**
- * Example 1: Document Versioning
- * This example demonstrates creating and managing versions of a document
- */
-async function documentVersioningExample() {
-  console.log('\n=== Example 1: Document Versioning ===\n');
+// Run the example
+async function runExample() {
+  console.log('=== Temporal Knowledge Management Example ===\n');
   
-  // Step 1: Create the initial version of a document
-  console.log('Creating initial document version...');
-  const initialVersion = await temporalKnowledge.createVersion({
-    artifactType: 'document',
-    artifactId: 'architecture-overview',
-    content: {
-      title: 'System Architecture Overview',
-      sections: [
-        { title: 'Introduction', content: 'This document provides an overview of the system architecture.' },
-        { title: 'Components', content: 'The system consists of the following components...' },
-        { title: 'Interfaces', content: 'Components communicate through the following interfaces...' }
-      ],
-      status: 'draft',
-      version: '0.1'
-    },
-    metadata: {
-      author: 'Jane Smith',
-      createdAt: new Date().toISOString(),
-      reason: 'Initial draft'
-    },
-    tags: ['architecture', 'draft', 'documentation']
-  });
-  
-  console.log('Initial version created:', initialVersion.versionId);
-  console.log('Lifecycle state:', initialVersion.lifecycleState);
-  
-  // Step 2: Update the document with a new version
-  console.log('\nCreating updated document version...');
-  const updatedVersion = await temporalKnowledge.createVersion({
-    artifactType: 'document',
-    artifactId: 'architecture-overview',
-    content: {
-      title: 'System Architecture Overview',
-      sections: [
-        { title: 'Introduction', content: 'This document provides an overview of the system architecture.' },
-        { title: 'Components', content: 'The system consists of the following components...' },
-        { title: 'Interfaces', content: 'Components communicate through the following interfaces...' },
-        { title: 'Deployment', content: 'The system is deployed using the following infrastructure...' }
-      ],
-      status: 'review',
-      version: '0.2'
-    },
-    metadata: {
-      author: 'Jane Smith',
-      createdAt: new Date().toISOString(),
-      reason: 'Added deployment section',
-      significant: true
-    },
-    parentVersionId: initialVersion.versionId,
-    tags: ['architecture', 'review', 'documentation']
-  });
-  
-  console.log('Updated version created:', updatedVersion.versionId);
-  
-  // Step 3: Update the document's lifecycle state
-  console.log('\nUpdating document lifecycle state...');
-  const stateChange = await temporalKnowledge.updateLifecycleState({
-    artifactType: 'document',
-    artifactId: 'architecture-overview',
-    state: 'approved',
-    reason: 'Approved by architecture review board',
-    versionId: updatedVersion.versionId
-  });
-  
-  console.log('Lifecycle state updated:', stateChange.to);
-  console.log('Reason:', stateChange.reason);
-  
-  // Step 4: List all versions of the document
-  console.log('\nListing document versions...');
-  const versions = await temporalKnowledge.listVersions({
-    artifactType: 'document',
-    artifactId: 'architecture-overview'
-  });
-  
-  console.log(`Found ${versions.length} versions:`);
-  versions.forEach((version, index) => {
-    console.log(`${index + 1}. ${version.versionId} - Created: ${version.metadata.createdAt}`);
-  });
-  
-  // Step 5: Compare document versions
-  console.log('\nComparing document versions...');
-  const comparison = await temporalKnowledge.compareVersions({
-    artifactType: 'document',
-    artifactId: 'architecture-overview',
-    baseVersionId: initialVersion.versionId,
-    targetVersionId: updatedVersion.versionId
-  });
-  
-  console.log('Comparison results:');
-  console.log('- Content changes:', comparison.contentChanges);
-  console.log('- Metadata changes:', comparison.metadataChanges);
-  console.log('- Tags changes:', comparison.tagsChanges);
-  
-  return { documentId: 'architecture-overview', versions };
-}
-
-/**
- * Example 2: Knowledge Artifact Dependencies
- * This example demonstrates tracking dependencies between knowledge artifacts
- */
-async function dependencyTrackingExample() {
-  console.log('\n\n=== Example 2: Knowledge Artifact Dependencies ===\n');
-  
-  // Step 1: Create a decision artifact
-  console.log('Creating decision artifact...');
-  const decision = await temporalKnowledge.createVersion({
-    artifactType: 'decision',
-    artifactId: 'auth-jwt',
-    content: {
-      title: 'Use JWT for Authentication',
-      description: 'We will use JWT tokens for authentication',
-      rationale: 'JWT provides stateless authentication and is widely supported',
-      alternatives: ['Session-based auth', 'OAuth2'],
-      status: 'approved'
-    },
-    metadata: {
-      author: 'Security Team',
-      createdAt: new Date().toISOString()
-    },
-    tags: ['security', 'authentication', 'architecture']
-  });
-  
-  console.log('Decision created:', decision.versionId);
-  
-  // Step 2: Create a code implementation artifact
-  console.log('\nCreating code implementation artifact...');
-  const implementation = await temporalKnowledge.createVersion({
-    artifactType: 'implementation',
-    artifactId: 'auth-service',
-    content: {
-      repository: 'github.com/example/auth-service',
-      files: ['src/auth/jwt.js', 'src/auth/middleware.js'],
-      pullRequest: 'PR-123',
-      status: 'merged'
-    },
-    metadata: {
-      author: 'Dev Team',
-      createdAt: new Date().toISOString()
-    },
-    tags: ['security', 'authentication', 'implementation']
-  });
-  
-  console.log('Implementation created:', implementation.versionId);
-  
-  // Step 3: Register dependency between decision and implementation
-  console.log('\nRegistering dependency between decision and implementation...');
-  const dependency = await temporalKnowledge.registerDependency({
-    sourceType: 'decision',
-    sourceId: 'auth-jwt',
-    targetType: 'implementation',
-    targetId: 'auth-service',
-    dependencyType: 'implements',
-    strength: 'high',
-    metadata: {
-      description: 'Auth service implements JWT authentication decision',
-      significant: true
-    }
-  });
-  
-  console.log('Dependency registered:', dependency.dependencyId);
-  
-  // Step 4: Create a documentation artifact
-  console.log('\nCreating documentation artifact...');
-  const documentation = await temporalKnowledge.createVersion({
-    artifactType: 'documentation',
-    artifactId: 'auth-guide',
-    content: {
-      title: 'Authentication Developer Guide',
-      sections: [
-        { title: 'Overview', content: 'This guide explains how to use the authentication service' },
-        { title: 'JWT Integration', content: 'To integrate with JWT authentication...' }
-      ],
-      status: 'published'
-    },
-    metadata: {
-      author: 'Documentation Team',
-      createdAt: new Date().toISOString()
-    },
-    tags: ['guide', 'authentication', 'jwt']
-  });
-  
-  console.log('Documentation created:', documentation.versionId);
-  
-  // Step 5: Register dependency between implementation and documentation
-  console.log('\nRegistering dependency between implementation and documentation...');
-  const docDependency = await temporalKnowledge.registerDependency({
-    sourceType: 'implementation',
-    sourceId: 'auth-service',
-    targetType: 'documentation',
-    targetId: 'auth-guide',
-    dependencyType: 'documents',
-    strength: 'medium',
-    metadata: {
-      description: 'Auth guide documents the auth service implementation'
-    }
-  });
-  
-  console.log('Documentation dependency registered:', docDependency.dependencyId);
-  
-  // Step 6: Perform impact analysis
-  console.log('\nPerforming impact analysis for the decision...');
-  const impact = await temporalKnowledge.analyzeImpact({
-    artifactType: 'decision',
-    artifactId: 'auth-jwt',
-    depth: 2,
-    direction: 'both'
-  });
-  
-  console.log('Impact analysis results:');
-  console.log(`- Directly affects: ${impact.affects.length} artifacts`);
-  console.log(`- Indirectly affects (downstream): ${impact.downstream.length} dependency chains`);
-  console.log(`- Affected by (upstream): ${impact.upstream.length} dependency chains`);
-  
-  return { decisionId: 'auth-jwt', implementationId: 'auth-service', documentationId: 'auth-guide' };
-}
-
-/**
- * Example 3: Temporal Recovery and Historical Context
- * This example demonstrates retrieving historical versions of knowledge artifacts
- */
-async function temporalRecoveryExample() {
-  console.log('\n\n=== Example 3: Temporal Recovery and Historical Context ===\n');
-  
-  // Step 1: Retrieve a document version by timestamp
-  console.log('Retrieving document version by timestamp...');
-  const pastVersion = await temporalKnowledge.getVersion({
-    artifactType: 'document',
-    artifactId: 'abc',
-    timestamp: '2025-04-20T12:00:00.000Z'
-  });
-  
-  console.log('Retrieved version from timestamp:', pastVersion.versionId);
-  console.log('Version content:', pastVersion.content);
-  
-  // Step 2: Get full artifact history
-  console.log('\nRetrieving full artifact history...');
-  const history = await temporalKnowledge.getArtifactHistory({
-    artifactType: 'document',
-    artifactId: 'abc',
-    limit: 10
-  });
-  
-  console.log(`Retrieved ${history.history.length} history items:`);
-  history.history.forEach((item, index) => {
-    if (item.type === 'version') {
-      console.log(`${index + 1}. Version: ${item.versionId} at ${item.timestamp}`);
-    } else if (item.type === 'state_change') {
-      console.log(`${index + 1}. State change: ${item.from} → ${item.to} at ${item.timestamp}`);
-    }
-  });
-  
-  // Step 3: Create a branch from an existing version
-  console.log('\nCreating a branch from an existing version...');
-  const branch = await temporalKnowledge.createBranch({
-    artifactType: 'document',
-    artifactId: 'abc',
-    baseVersionId: 'document_abc_1714000000000',
-    branchName: 'alternative-approach',
-    metadata: {
-      reason: 'Exploring alternative architecture',
-      author: 'John Doe'
-    }
-  });
-  
-  console.log('Branch created:', branch.branch.branchId);
-  console.log('Initial branch version:', branch.initialVersion.versionId);
-  
-  // Step 4: List branches for an artifact
-  console.log('\nListing branches for the document...');
-  const branches = await temporalKnowledge.listBranches({
-    artifactType: 'document',
-    artifactId: 'abc'
-  });
-  
-  console.log(`Found ${branches.length} branches:`);
-  branches.forEach((branch, index) => {
-    console.log(`${index + 1}. ${branch.branchName} - Created: ${branch.createdAt}`);
-  });
-  
-  // Step 5: Export temporal knowledge to ConPort
-  console.log('\nExporting document history to ConPort...');
-  const exportResult = await temporalKnowledge.exportToConPort({
-    artifactType: 'document',
-    artifactId: 'abc',
-    category: 'document_exports',
-    key: 'document_abc_export'
-  });
-  
-  console.log('Export result:', exportResult);
-  
-  return { documentId: 'abc', historyItems: history.history.length };
-}
-
-/**
- * Example 4: Lifecycle State Management
- * This example demonstrates managing lifecycle states of knowledge artifacts
- */
-async function lifecycleManagementExample() {
-  console.log('\n\n=== Example 4: Lifecycle State Management ===\n');
-  
-  // Step 1: Create a new pattern artifact
-  console.log('Creating pattern artifact...');
-  const pattern = await temporalKnowledge.createVersion({
-    artifactType: 'pattern',
-    artifactId: 'circuit-breaker',
-    content: {
-      name: 'Circuit Breaker Pattern',
-      description: 'Prevents cascading failures in distributed systems',
-      implementation: 'Use a state machine with closed, open, and half-open states...',
-      examples: ['example1.js', 'example2.js']
-    },
-    metadata: {
-      author: 'Architecture Team',
-      createdAt: new Date().toISOString()
-    },
-    tags: ['resilience', 'distributed-systems', 'fault-tolerance']
-  });
-  
-  console.log('Pattern created:', pattern.versionId);
-  console.log('Initial state:', pattern.lifecycleState);
-  
-  // Step 2: Update lifecycle state to 'review'
-  console.log('\nUpdating pattern lifecycle state to review...');
-  const reviewState = await temporalKnowledge.updateLifecycleState({
-    artifactType: 'pattern',
-    artifactId: 'circuit-breaker',
-    state: 'review',
-    reason: 'Ready for architecture review'
-  });
-  
-  console.log('State updated to review:', reviewState.to);
-  
-  // Step 3: Update lifecycle state to 'approved'
-  console.log('\nUpdating pattern lifecycle state to approved...');
-  const approvedState = await temporalKnowledge.updateLifecycleState({
-    artifactType: 'pattern',
-    artifactId: 'circuit-breaker',
-    state: 'approved',
-    reason: 'Approved by architecture review board',
-    metadata: {
-      approvedBy: 'Architecture Review Board',
-      meetingDate: '2025-06-10'
-    }
-  });
-  
-  console.log('State updated to approved:', approvedState.to);
-  
-  // Step 4: Create an updated version
-  console.log('\nCreating updated pattern version...');
-  const updatedPattern = await temporalKnowledge.createVersion({
-    artifactType: 'pattern',
-    artifactId: 'circuit-breaker',
-    content: {
-      name: 'Circuit Breaker Pattern',
-      description: 'Prevents cascading failures in distributed systems',
-      implementation: 'Use a state machine with closed, open, and half-open states...',
-      examples: ['example1.js', 'example2.js', 'example3.js'],
-      considerations: 'Care must be taken when implementing timeout values...'
-    },
-    metadata: {
-      author: 'Architecture Team',
-      createdAt: new Date().toISOString(),
-      reason: 'Added implementation considerations'
-    },
-    parentVersionId: pattern.versionId,
-    tags: ['resilience', 'distributed-systems', 'fault-tolerance', 'approved']
-  });
-  
-  console.log('Updated pattern created:', updatedPattern.versionId);
-  
-  // Step 5: Update lifecycle state to 'deprecated'
-  console.log('\nUpdating pattern lifecycle state to deprecated...');
-  const deprecatedState = await temporalKnowledge.updateLifecycleState({
-    artifactType: 'pattern',
-    artifactId: 'circuit-breaker',
-    state: 'deprecated',
-    reason: 'Replaced by more comprehensive Resilience Pattern',
-    metadata: {
-      deprecatedBy: 'Architecture Team',
-      replacementArtifact: 'pattern:resilience-patterns'
-    }
-  });
-  
-  console.log('State updated to deprecated:', deprecatedState.to);
-  console.log('Reason:', deprecatedState.reason);
-  
-  return { patternId: 'circuit-breaker', stateChanges: 3 };
-}
-
-// Run the examples
-async function runAllExamples() {
   try {
-    console.log('=== Temporal Knowledge Management Usage Examples ===');
+    // Initialize the temporal knowledge manager
+    console.log('1. Initializing the Temporal Knowledge Management System');
+    const temporalManager = createTemporalKnowledgeManager({
+      workspaceId: '/projects/api-development',
+      conPortClient: mockConPortClient,
+      timeResolution: 'seconds', // Track changes with second-level precision
+      retentionPolicy: {
+        maxVersions: 50,  // Keep up to 50 versions per artifact
+        maxAge: '365d'    // Keep versions for up to one year
+      },
+      logger: {
+        info: (msg) => console.log(`[Info] ${msg}`),
+        warn: (msg) => console.log(`[Warning] ${msg}`),
+        error: (msg) => console.log(`[Error] ${msg}`)
+      }
+    });
     
-    // Run Example 1
-    const example1Result = await documentVersioningExample();
+    await temporalManager.initialize();
+    console.log('✓ Temporal knowledge manager initialized\n');
     
-    // Run Example 2
-    const example2Result = await dependencyTrackingExample();
+    // Create a new version of a decision
+    console.log('2. Creating a New Version of a Decision');
+    const version = await temporalManager.createVersion({
+      artifactType: 'decision',
+      artifactId: 123,
+      content: {
+        summary: 'Use GraphQL and REST for API',
+        rationale: 'GraphQL for complex queries, REST for simple operations',
+        tags: ['API', 'architecture', 'hybrid-approach']
+      },
+      metadata: {
+        author: 'developer1',
+        description: 'Updated decision to use hybrid API approach'
+      }
+    });
     
-    // Run Example 3
-    const example3Result = await temporalRecoveryExample();
+    console.log(`✓ Created version: ${version.versionId}`);
+    console.log(`✓ Timestamp: ${version.timestamp}`);
+    console.log('✓ Version creation complete\n');
     
-    // Run Example 4
-    const example4Result = await lifecycleManagementExample();
+    // Get version history for an artifact
+    console.log('3. Getting Version History for a Decision');
+    const versionHistory = await temporalManager.getVersions({
+      artifactType: 'decision',
+      artifactId: 123
+    });
     
-    console.log('\n=== Examples Completed Successfully ===');
+    console.log(`✓ Retrieved ${versionHistory.versions.length} versions`);
+    versionHistory.versions.forEach((ver, index) => {
+      console.log(`  Version ${index + 1}: ${ver.versionId} (${ver.timestamp})`);
+    });
+    console.log('✓ Version history retrieval complete\n');
+    
+    // Get artifact at a specific point in time
+    console.log('4. Retrieving Decision as it Existed at a Specific Time');
+    const pastDecision = await temporalManager.getAtTime({
+      artifactType: 'decision',
+      artifactId: 123,
+      timestamp: '2025-01-15T12:00:00Z'
+    });
+    
+    console.log('✓ Retrieved decision as it existed on January 15, 2025:');
+    console.log(`  Summary: ${pastDecision.content.summary}`);
+    console.log(`  Rationale: ${pastDecision.content.rationale}`);
+    console.log('✓ Point-in-time retrieval complete\n');
+    
+    // Compare versions
+    console.log('5. Comparing Different Versions of a Decision');
+    const comparison = await temporalManager.compareVersions({
+      artifactType: 'decision',
+      artifactId: 123,
+      versionIdFrom: 'v1',
+      versionIdTo: 'v2'
+    });
+    
+    console.log('✓ Version comparison results:');
+    console.log(`  Changed fields: ${comparison.changedFields.join(', ')}`);
+    console.log(`  Summary changed: ${comparison.differences.summary ? 'Yes' : 'No'}`);
+    console.log(`  Rationale changed: ${comparison.differences.rationale ? 'Yes' : 'No'}`);
+    console.log('✓ Version comparison complete\n');
+    
+    // Analyze changes over time
+    console.log('6. Analyzing Changes to Knowledge Over Time');
+    const changeAnalysis = await temporalManager.analyzeChanges({
+      artifactType: 'decision',
+      artifactId: 123,
+      timeRange: {
+        from: '2025-01-01T00:00:00Z',
+        to: '2025-02-01T00:00:00Z'
+      },
+      granularity: 'days'
+    });
+    
+    console.log('✓ Change analysis results:');
+    console.log(`  Total changes: ${changeAnalysis.totalChanges}`);
+    console.log(`  Most active period: ${changeAnalysis.mostActivePeriod}`);
+    console.log(`  Most frequently changed field: ${changeAnalysis.mostChangedField}`);
+    console.log('✓ Change analysis complete\n');
+    
+    // Create a snapshot of knowledge at a point in time
+    console.log('7. Creating a Snapshot of All Knowledge at a Point in Time');
+    const snapshot = await temporalManager.createSnapshot({
+      timestamp: '2025-01-20T00:00:00Z',
+      artifactTypes: ['decision', 'system_pattern'],
+      description: 'Pre-release knowledge snapshot'
+    });
+    
+    console.log(`✓ Created snapshot: ${snapshot.snapshotId}`);
+    console.log(`✓ Snapshot timestamp: ${snapshot.timestamp}`);
+    console.log(`✓ Artifacts included: ${snapshot.artifactsCount}`);
+    console.log('✓ Snapshot creation complete\n');
+    
+    // Roll back to a previous version
+    console.log('8. Rolling Back a Decision to a Previous Version');
+    const rollback = await temporalManager.rollbackToVersion({
+      artifactType: 'decision',
+      artifactId: 123,
+      versionId: 'v1',
+      createNewVersion: true,
+      metadata: {
+        author: 'developer2',
+        description: 'Rolled back to original API decision'
+      }
+    });
+    
+    console.log('✓ Rollback complete:');
+    console.log(`  New version created: ${rollback.newVersionId}`);
+    console.log(`  Rolled back to: Version ${rollback.targetVersion}`);
+    console.log('✓ Rollback operation complete\n');
+    
+    // Get product context evolution
+    console.log('9. Analyzing Product Context Evolution');
+    const contextEvolution = await temporalManager.getContextEvolution({
+      contextType: 'product_context',
+      timeRange: {
+        from: '2025-01-01T00:00:00Z',
+        to: '2025-02-01T00:00:00Z'
+      }
+    });
+    
+    console.log('✓ Product context evolution:');
+    console.log(`  Versions analyzed: ${contextEvolution.versionsCount}`);
+    console.log(`  Key milestones: ${contextEvolution.milestones.length}`);
+    contextEvolution.milestones.forEach(milestone => {
+      console.log(`    - ${milestone.date}: ${milestone.description}`);
+    });
+    console.log('✓ Context evolution analysis complete\n');
+    
+    // Generate temporal report
+    console.log('10. Generating a Temporal Knowledge Report');
+    const report = await temporalManager.generateTemporalReport({
+      title: 'January 2025 Knowledge Evolution',
+      timeRange: {
+        from: '2025-01-01T00:00:00Z',
+        to: '2025-02-01T00:00:00Z'
+      },
+      artifactTypes: ['decision', 'system_pattern'],
+      includeChangeSummary: true,
+      includeActivityGraph: true
+    });
+    
+    console.log('✓ Generated temporal report:');
+    console.log(`  Report ID: ${report.reportId}`);
+    console.log(`  Period covered: ${report.period}`);
+    console.log(`  Total changes: ${report.totalChanges}`);
+    console.log(`  Key insights: ${report.keyInsights.length}`);
+    console.log('✓ Report generation complete\n');
+    
+    console.log('=== Example Complete ===');
+    
   } catch (error) {
-    console.error('Error running examples:', error);
+    console.error('Example failed:', error.message);
   }
 }
 
-// Execute all examples
-runAllExamples();
+// Run the example
+runExample().catch(err => console.error('Unexpected error:', err));
 
 /**
- * Additional Example: Using the Temporal Knowledge Management component with ConPort Integration
+ * Real-world Use Case Scenarios:
  * 
- * This example shows how to integrate with ConPort to maintain knowledge history
+ * 1. Knowledge Auditing
+ *    Track how critical decisions have evolved over time, when changes were made,
+ *    and who made them. This provides an audit trail for compliance and governance.
+ * 
+ * 2. Trend Analysis
+ *    Analyze how knowledge evolves over time to identify patterns, trends, and
+ *    areas of frequent change or instability.
+ * 
+ * 3. Project Retrospectives
+ *    Create snapshots at key project milestones and compare knowledge across different
+ *    phases to understand how understanding evolved throughout the project lifecycle.
+ * 
+ * 4. Knowledge Recovery
+ *    Roll back to previous versions of knowledge artifacts when necessary, or
+ *    retrieve how knowledge existed at a specific point in time for reference.
+ * 
+ * 5. Change Impact Analysis
+ *    Analyze how changes to one knowledge artifact over time have affected related
+ *    artifacts, identifying cascading effects and interdependencies.
  */
-
-/*
-// Example integration with ConPort
-
-const { createTemporalKnowledge } = require('../utilities/phase-3/temporal-knowledge-management/temporal-knowledge');
-const { getConPortClient } = require('../utilities/conport-client');
-
-async function trackDecisionHistory() {
-  // Initialize ConPort client
-  const conPortClient = getConPortClient('/path/to/workspace');
-  
-  // Initialize Temporal Knowledge Management
-  const temporalKnowledge = createTemporalKnowledge({
-    workspaceId: '/path/to/workspace',
-    conPortClient
-  });
-  
-  // Get a decision from ConPort
-  const decision = await conPortClient.get_decision({
-    workspace_id: '/path/to/workspace',
-    decision_id: 123
-  });
-  
-  // Create a version of the decision in temporal knowledge
-  const decisionVersion = await temporalKnowledge.createVersion({
-    artifactType: 'decision',
-    artifactId: decision.id.toString(),
-    content: decision,
-    metadata: {
-      createdAt: decision.timestamp,
-      source: 'conport_decision'
-    },
-    tags: decision.tags || []
-  });
-  
-  console.log(`Decision ${decision.id} versioned as ${decisionVersion.versionId}`);
-  
-  // Now if the decision is updated, create a new version
-  const updatedDecision = await conPortClient.get_decision({
-    workspace_id: '/path/to/workspace',
-    decision_id: 123
-  });
-  
-  if (updatedDecision.timestamp !== decision.timestamp) {
-    const newVersion = await temporalKnowledge.createVersion({
-      artifactType: 'decision',
-      artifactId: updatedDecision.id.toString(),
-      content: updatedDecision,
-      metadata: {
-        createdAt: updatedDecision.timestamp,
-        source: 'conport_decision'
-      },
-      parentVersionId: decisionVersion.versionId,
-      tags: updatedDecision.tags || []
-    });
-    
-    console.log(`Updated decision ${updatedDecision.id} versioned as ${newVersion.versionId}`);
-    
-    // Analyze what changed
-    const comparison = await temporalKnowledge.compareVersions({
-      artifactType: 'decision',
-      artifactId: updatedDecision.id.toString(),
-      baseVersionId: decisionVersion.versionId,
-      targetVersionId: newVersion.versionId
-    });
-    
-    console.log('Changes detected:', comparison);
-  }
-}
-*/

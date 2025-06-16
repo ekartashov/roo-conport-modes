@@ -59,8 +59,8 @@ The integration class that:
 const { 
   KnowledgeMetricsDashboard, 
   KnowledgeMetricsIntegration,
-  validateConPortClient 
-} = require('./utilities/phase-2/knowledge-metrics');
+  validateConPortClient
+} = require('./utilities/core/knowledge-metrics');
 
 // Create a new dashboard
 const dashboard = new KnowledgeMetricsDashboard();

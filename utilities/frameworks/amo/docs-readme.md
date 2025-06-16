@@ -34,7 +34,7 @@ AMO is included as part of the Phase 4 ConPort system. No separate installation 
 ### Initialize the Relationship Manager
 
 ```javascript
-const { RelationshipManager } = require('../utilities/phase-4/amo');
+const { RelationshipManager } = require('../utilities/frameworks/amo');
 
 // Create a relationship manager
 const relationshipManager = new RelationshipManager({
@@ -63,7 +63,7 @@ console.log(`Created relationship with ID: ${relationship.id}`);
 ### Use the Mapping Orchestrator
 
 ```javascript
-const { RelationshipManager, MappingOrchestrator } = require('../utilities/phase-4/amo');
+const { RelationshipManager, MappingOrchestrator } = require('../utilities/frameworks/amo');
 
 // Create a relationship manager
 const relationshipManager = new RelationshipManager();
@@ -108,7 +108,7 @@ console.log(`Discovered ${results.relationshipsDiscovered} relationships`);
 ### Query the Knowledge Graph
 
 ```javascript
-const { RelationshipManager, KnowledgeGraphQuery } = require('../utilities/phase-4/amo');
+const { RelationshipManager, KnowledgeGraphQuery } = require('../utilities/frameworks/amo');
 
 // Create a relationship manager and add some relationships
 const relationshipManager = new RelationshipManager();
@@ -138,7 +138,7 @@ console.log(`Query found ${results.nodes.length} nodes and ${results.relationshi
 ### Integrate with ConPort
 
 ```javascript
-const { RelationshipManager, ConPortAMOIntegration } = require('../utilities/phase-4/amo');
+const { RelationshipManager, ConPortAMOIntegration } = require('../utilities/frameworks/amo');
 
 // Create a relationship manager
 const relationshipManager = new RelationshipManager();
@@ -169,7 +169,7 @@ const {
   RelationshipManager, 
   MappingOrchestrator,
   KDAPAMOIntegration 
-} = require('../utilities/phase-4/amo');
+} = require('../utilities/frameworks/amo');
 
 // Create a relationship manager and mapping orchestrator
 const relationshipManager = new RelationshipManager();
@@ -205,7 +205,7 @@ const {
   RelationshipManager, 
   KnowledgeGraphQuery,
   AKAFAMOIntegration 
-} = require('../utilities/phase-4/amo');
+} = require('../utilities/frameworks/amo');
 
 // Create a relationship manager and graph query engine
 const relationshipManager = new RelationshipManager();

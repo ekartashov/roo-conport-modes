@@ -1,536 +1,296 @@
 /**
- * Knowledge Quality Enhancement System Usage Example
+ * Example usage of the Knowledge Quality Enhancement system
  * 
- * This example demonstrates how to use the Knowledge Quality Enhancement System
- * to assess, enhance, and monitor knowledge quality.
+ * This example demonstrates how to use the Knowledge Quality Enhancement
+ * system to assess, improve, and maintain high-quality knowledge in ConPort.
  */
 
-// Import the Knowledge Quality Enhancement System
-const { createKnowledgeQuality } = require('../utilities/phase-3/knowledge-quality-enhancement/knowledge-quality');
+// Import the knowledge quality enhancement system
+const { createKnowledgeQualityEnhancer } = require('../../utilities/phase-3/knowledge-quality-enhancement/knowledge-quality');
 
-// Mock ConPort client for demonstration purposes
+// Mock ConPort client for the example
 const mockConPortClient = {
-  // Basic ConPort API methods
-  log_custom_data: async (args) => ({
-    category: args.category,
-    key: args.key,
-    saved: true
-  }),
-  get_custom_data: async (args) => {
-    // Mock implementation based on category and key
-    if (args.category === 'temporal_knowledge_versions') {
-      return {
-        versionId: args.key,
-        artifactType: args.key.split('_')[0],
-        artifactId: args.key.split('_')[1],
-        content: { title: 'Mock content for ' + args.key },
-        metadata: { createdAt: new Date().toISOString() },
-        tags: ['example']
-      };
-    }
-    
-    if (args.category === 'quality_criteria') {
-      return null; // Force using default criteria
-    }
-    
-    return null;
+  async get_active_context({ workspace_id }) {
+    console.log(`[ConPort] Getting active context for workspace ${workspace_id}`);
+    return { current_focus: 'API Quality Improvement' };
   },
-  get_decisions: async (args) => {
-    if (args.decision_id) {
-      return {
-        id: args.decision_id,
-        summary: 'Example decision',
-        rationale: 'This is the rationale for the example decision',
-        implementation_details: 'Implementation details go here',
-        timestamp: new Date().toISOString(),
-        tags: ['example', 'decision']
-      };
-    }
-    
+  
+  async update_active_context({ workspace_id, patch_content }) {
+    console.log(`[ConPort] Updating active context for workspace ${workspace_id}`);
+    console.log(`[ConPort] Patch content: ${JSON.stringify(patch_content, null, 2)}`);
+    return { success: true };
+  },
+  
+  async log_decision({ workspace_id, summary, rationale, tags }) {
+    console.log(`[ConPort] Logging decision for workspace ${workspace_id}`);
+    console.log(`[ConPort] Decision: ${summary}`);
+    return { id: Math.floor(Math.random() * 1000), summary, rationale, tags };
+  },
+  
+  async get_decisions({ workspace_id }) {
+    console.log(`[ConPort] Getting decisions for workspace ${workspace_id}`);
     return [
-      { id: 1, summary: 'Decision 1', timestamp: new Date().toISOString() },
-      { id: 2, summary: 'Decision 2', timestamp: new Date().toISOString() }
+      { id: 123, summary: 'Use GraphQL for API', rationale: 'Better query flexibility', tags: ['API', 'architecture'] },
+      { id: 124, summary: 'Implement JWT Authentication', rationale: 'Stateless auth for scalability', tags: ['security', 'API'] }
     ];
   },
-  get_system_patterns: async (args) => {
-    if (args.pattern_id) {
-      return {
-        id: args.pattern_id,
-        name: 'Example pattern',
-        description: 'This is an example system pattern',
-        timestamp: new Date().toISOString(),
-        tags: ['example', 'pattern']
-      };
-    }
-    
+  
+  async log_system_pattern({ workspace_id, name, description, tags }) {
+    console.log(`[ConPort] Logging system pattern for workspace ${workspace_id}`);
+    console.log(`[ConPort] Pattern: ${name}`);
+    return { id: Math.floor(Math.random() * 1000), name, description, tags };
+  },
+  
+  async get_system_patterns({ workspace_id }) {
+    console.log(`[ConPort] Getting system patterns for workspace ${workspace_id}`);
     return [
-      { id: 1, name: 'Pattern 1', timestamp: new Date().toISOString() },
-      { id: 2, name: 'Pattern 2', timestamp: new Date().toISOString() }
+      { id: 234, name: 'Repository Pattern', description: 'Abstract data access', tags: ['architecture', 'data-access'] }
     ];
   },
-  get_progress: async (args) => {
-    if (args.progress_id) {
-      return {
-        id: args.progress_id,
-        description: 'Example progress entry',
-        status: 'IN_PROGRESS',
-        timestamp: new Date().toISOString()
-      };
-    }
-    
-    return [
-      { id: 1, description: 'Progress 1', status: 'TODO', timestamp: new Date().toISOString() },
-      { id: 2, description: 'Progress 2', status: 'DONE', timestamp: new Date().toISOString() }
-    ];
+  
+  async log_custom_data({ workspace_id, category, key, value }) {
+    console.log(`[ConPort] Logging custom data for workspace ${workspace_id}`);
+    console.log(`[ConPort] Category: ${category}, Key: ${key}`);
+    return { success: true };
   },
-  log_decision: async (args) => ({
-    id: Date.now(),
-    summary: args.summary,
-    timestamp: new Date().toISOString(),
-    saved: true
-  }),
-  update_decision: async (args) => ({ updated: true, id: args.decision_id }),
-  update_system_pattern: async (args) => ({ updated: true, id: args.pattern_id }),
-  update_progress: async (args) => ({ updated: true, id: args.progress_id }),
-  get_active_context: async (args) => ({ current_focus: 'Example focus', open_issues: [] }),
-  update_active_context: async (args) => ({ updated: true }),
-  get_product_context: async (args) => ({ name: 'Example product' }),
-  update_product_context: async (args) => ({ updated: true })
+  
+  async get_custom_data({ workspace_id, category, key }) {
+    console.log(`[ConPort] Getting custom data for workspace ${workspace_id}`);
+    return { value: { example: 'data' } };
+  }
 };
 
-// Initialize the Knowledge Quality Enhancement System
-const knowledgeQuality = createKnowledgeQuality({
-  workspaceId: '/example/workspace',
-  conPortClient: mockConPortClient,
-  enableValidation: true,
-  strictMode: false
-});
-
-/**
- * Example 1: Assessing Knowledge Quality
- * This example demonstrates how to assess the quality of a knowledge artifact.
- */
-async function assessQualityExample() {
-  console.log('\n=== Example 1: Assessing Knowledge Quality ===\n');
-  
-  // Assess quality of a decision
-  console.log('Assessing quality of a decision artifact...');
-  const decisionQuality = await knowledgeQuality.assessQuality({
-    artifactType: 'decision',
-    artifactId: '123',
-    qualityDimensions: ['completeness', 'accuracy', 'clarity'],
-    includeContent: true
-  });
-  
-  console.log(`Decision quality score: ${decisionQuality.overallScore}/100`);
-  console.log('Dimension scores:');
-  decisionQuality.dimensionScores.forEach(dimension => {
-    console.log(`- ${dimension.dimension}: ${dimension.score}/100`);
-  });
-  
-  if (decisionQuality.improvementOpportunities.length > 0) {
-    console.log('\nImprovement opportunities:');
-    decisionQuality.improvementOpportunities.forEach(opportunity => {
-      console.log(`- ${opportunity.description} (current score: ${opportunity.currentScore})`);
-    });
-  }
-  
-  // Assess quality of a system pattern
-  console.log('\nAssessing quality of a system pattern artifact...');
-  const patternQuality = await knowledgeQuality.assessQuality({
-    artifactType: 'system_pattern',
-    artifactId: '456'
-  });
-  
-  console.log(`System pattern quality score: ${patternQuality.overallScore}/100`);
-  
-  return { decisionQuality, patternQuality };
-}
-
-/**
- * Example 2: Enhancing Knowledge Quality
- * This example demonstrates how to enhance the quality of a knowledge artifact.
- */
-async function enhanceQualityExample() {
-  console.log('\n=== Example 2: Enhancing Knowledge Quality ===\n');
-  
-  // Enhance a decision with completeness and clarity enhancements
-  console.log('Enhancing a decision artifact...');
-  const enhancementResult = await knowledgeQuality.enhanceQuality({
-    artifactType: 'decision',
-    artifactId: '123',
-    enhancementTypes: ['completeness', 'clarity', 'metadata'],
-    enhancementOptions: {
-      completeness: {
-        requiredFields: ['summary', 'rationale', 'alternatives', 'impact'],
-        requiredSections: ['Context', 'Decision', 'Consequences'],
-        defaultValues: {
-          alternatives: 'No alternatives were considered.',
-          impact: 'Impact analysis pending.'
-        },
-        defaultSectionContent: 'This section needs to be completed.'
-      },
-      clarity: {
-        simplifyText: true,
-        reduceJargon: true,
-        jargonReplacements: {
-          'utilize': 'use',
-          'functionality': 'feature',
-          'leverage': 'use',
-          'paradigm': 'approach'
-        },
-        addGlossary: true,
-        glossaryTerms: {
-          'JWT': 'JSON Web Token, a compact, URL-safe means of representing claims.',
-          'REST': 'Representational State Transfer, an architectural style for distributed systems.'
-        }
-      },
-      metadata: {
-        requiredMetadata: ['author', 'reviewedBy', 'createdAt', 'updatedAt'],
-        updateTimestamps: true,
-        addTags: ['enhanced', 'reviewed']
-      }
+// Define custom quality policies for the example
+const customQualityPolicies = {
+  decision: {
+    completeness: {
+      required: ['summary', 'rationale', 'tags'],
+      recommended: ['implementation_details'],
+      minLength: { summary: 10, rationale: 20 }
     },
-    createNewVersion: true
-  });
-  
-  console.log(`Enhancement completed: ${enhancementResult.appliedEnhancements.length} enhancements applied`);
-  console.log('Applied enhancements:');
-  enhancementResult.appliedEnhancements.forEach(enhancement => {
-    console.log(`- ${enhancement.type}: ${enhancement.description}`);
-    if (enhancement.changes && enhancement.changes.length > 0) {
-      enhancement.changes.forEach(change => {
-        console.log(`  * ${change}`);
-      });
-    }
-  });
-  
-  console.log(`\nNew version created: ${enhancementResult.enhancedVersionId}`);
-  
-  // Assess the quality of the enhanced version
-  console.log('\nAssessing quality of the enhanced decision...');
-  const enhancedQuality = await knowledgeQuality.assessQuality({
-    artifactType: 'decision',
-    artifactId: '123',
-    versionId: enhancementResult.enhancedVersionId
-  });
-  
-  console.log(`Enhanced decision quality score: ${enhancedQuality.overallScore}/100`);
-  
-  return { enhancementResult, enhancedQuality };
-}
-
-/**
- * Example 3: Defining Quality Criteria and Thresholds
- * This example demonstrates how to define custom quality criteria and set thresholds.
- */
-async function defineCriteriaAndThresholdsExample() {
-  console.log('\n=== Example 3: Defining Quality Criteria and Thresholds ===\n');
-  
-  // Define a custom quality criterion for traceability
-  console.log('Defining a custom quality criterion for traceability...');
-  const traceabilityCriterion = await knowledgeQuality.defineQualityCriteria({
-    dimension: 'traceability',
-    description: 'Measures how well the artifact is linked to related artifacts',
-    criteria: {
-      sourceTracking: 2,
-      dependencyTracking: 3,
-      versionTracking: 2
+    clarity: {
+      maxJargonDensity: 0.1,
+      maxSentenceLength: 25,
+      preferredReadabilityLevel: 'technical'
     },
-    weight: 75,
-    applicableTypes: ['decision', 'system_pattern', 'document']
-  });
-  
-  console.log(`Custom criterion defined: ${traceabilityCriterion.dimension}`);
-  console.log(`Description: ${traceabilityCriterion.description}`);
-  console.log(`Weight: ${traceabilityCriterion.weight}`);
-  
-  // Set a quality threshold for the traceability dimension
-  console.log('\nSetting a quality threshold for traceability...');
-  const thresholdConfig = await knowledgeQuality.setQualityThreshold({
-    dimension: 'traceability',
-    threshold: 70,
-    applicableTypes: ['decision', 'system_pattern'],
-    alertLevel: 'warning',
-    alertActions: {
-      notifyInActiveContext: true,
-      suggestEnhancements: ['add_dependencies', 'add_references']
+    consistency: {
+      enforceTags: ['type', 'domain'],
+      enforceTitleFormat: 'action-oriented'
     }
-  });
-  
-  console.log(`Threshold set: ${thresholdConfig.dimension} = ${thresholdConfig.threshold}`);
-  console.log(`Alert level: ${thresholdConfig.alertLevel}`);
-  console.log(`Applicable to: ${thresholdConfig.applicableTypes.join(', ') || 'all types'}`);
-  
-  // Get all defined thresholds
-  console.log('\nGetting all defined quality thresholds...');
-  const allThresholds = await knowledgeQuality.getThresholds();
-  
-  console.log(`Found ${allThresholds.length} threshold(s)`);
-  
-  return { traceabilityCriterion, thresholdConfig };
-}
-
-/**
- * Example 4: Batch Quality Assessment
- * This example demonstrates how to assess quality for multiple artifacts in batch.
- */
-async function batchAssessmentExample() {
-  console.log('\n=== Example 4: Batch Quality Assessment ===\n');
-  
-  // Define a set of artifacts to assess
-  const artifacts = [
-    { artifactType: 'decision', artifactId: '123' },
-    { artifactType: 'decision', artifactId: '124' },
-    { artifactType: 'system_pattern', artifactId: '456' },
-    { artifactType: 'document', artifactId: 'architecture-overview' },
-    { artifactType: 'progress', artifactId: '789' }
-  ];
-  
-  console.log(`Assessing quality of ${artifacts.length} artifacts in batch...`);
-  const batchResult = await knowledgeQuality.batchAssessQuality({
-    artifacts,
-    qualityDimensions: ['completeness', 'accuracy', 'clarity', 'structure'],
-    includeContent: false,
-    concurrency: 3
-  });
-  
-  console.log(`Batch assessment completed: ${batchResult.totalAssessed} artifacts assessed`);
-  console.log(`Average quality score: ${batchResult.averageOverallScore}/100`);
-  console.log(`High quality artifacts: ${batchResult.highQualityArtifacts.length}`);
-  console.log(`Low quality artifacts: ${batchResult.lowQualityArtifacts.length}`);
-  
-  if (batchResult.lowQualityArtifacts.length > 0) {
-    console.log('\nLow quality artifacts that need attention:');
-    batchResult.lowQualityArtifacts.forEach(artifact => {
-      console.log(`- ${artifact.artifactType}:${artifact.artifactId} (score: ${artifact.score})`);
-    });
-  }
-  
-  return batchResult;
-}
-
-/**
- * Example 5: Quality Trend Analysis
- * This example demonstrates how to analyze quality trends over time.
- */
-async function qualityTrendAnalysisExample() {
-  console.log('\n=== Example 5: Quality Trend Analysis ===\n');
-  
-  // Analyze quality trends for a decision
-  console.log('Analyzing quality trends for a decision artifact...');
-  const trendAnalysis = await knowledgeQuality.analyzeQualityTrend({
-    artifactType: 'decision',
-    artifactId: '123',
-    startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
-    endDate: new Date().toISOString(),
-    qualityDimensions: ['completeness', 'accuracy', 'clarity'],
-    intervals: 6
-  });
-  
-  console.log(`Trend analysis completed for ${trendAnalysis.artifactType}:${trendAnalysis.artifactId}`);
-  console.log(`Analysis period: ${new Date(trendAnalysis.startDate).toLocaleDateString()} to ${new Date(trendAnalysis.endDate).toLocaleDateString()}`);
-  
-  if (trendAnalysis.trends.overall) {
-    console.log(`\nOverall trend: ${trendAnalysis.trends.overall.direction}`);
-    console.log(`Change: ${trendAnalysis.trends.overall.change > 0 ? '+' : ''}${trendAnalysis.trends.overall.change} points (${trendAnalysis.trends.overall.percentChange}%)`);
-  }
-  
-  if (trendAnalysis.trends.dimensions) {
-    console.log('\nDimension trends:');
-    for (const [dimension, trend] of Object.entries(trendAnalysis.trends.dimensions)) {
-      console.log(`- ${dimension}: ${trend.direction} (${trend.change > 0 ? '+' : ''}${trend.change} points, ${trend.percentChange}%)`);
+  },
+  system_pattern: {
+    completeness: {
+      required: ['name', 'description', 'tags'],
+      recommended: ['code_examples', 'usage_scenarios'],
+      minLength: { description: 50 }
     }
   }
-  
-  return trendAnalysis;
-}
+};
 
-/**
- * Example 6: Quality Issue Identification and Reporting
- * This example demonstrates how to identify quality issues and generate comprehensive reports.
- */
-async function qualityReportingExample() {
-  console.log('\n=== Example 6: Quality Issue Identification and Reporting ===\n');
+// Run the example
+async function runExample() {
+  console.log('=== Knowledge Quality Enhancement Example ===\n');
   
-  // Identify quality issues
-  console.log('Identifying quality issues...');
-  const qualityIssues = await knowledgeQuality.identifyQualityIssues({
-    artifactTypes: ['decision', 'system_pattern', 'document'],
-    minimumSeverity: 'warning',
-    limit: 10
-  });
-  
-  console.log(`Identified ${qualityIssues.totalIssues} quality issues`);
-  
-  for (const [artifactType, issues] of Object.entries(qualityIssues.issuesByType)) {
-    console.log(`\n${artifactType}: ${issues.length} issues`);
-    issues.slice(0, 3).forEach(issue => {
-      console.log(`- ${artifactType}:${issue.artifactId} has ${issue.violations.length} violations`);
-    });
-  }
-  
-  // Generate a comprehensive quality report
-  console.log('\nGenerating comprehensive quality report...');
-  const qualityReport = await knowledgeQuality.generateQualityReport({
-    artifactTypes: ['decision', 'system_pattern', 'document'],
-    includeDetails: true,
-    includeTrends: true,
-    sampleSize: 20
-  });
-  
-  console.log(`Quality report generated with timestamp: ${qualityReport.timestamp}`);
-  console.log('\nQuality Summary:');
-  console.log(`- Total artifacts: ${qualityReport.summary.totalArtifacts}`);
-  console.log(`- Average quality: ${qualityReport.summary.averageQuality}/100 (${qualityReport.summary.qualityRating})`);
-  console.log(`- High quality artifacts: ${qualityReport.summary.highQualityCount}`);
-  console.log(`- Low quality artifacts: ${qualityReport.summary.lowQualityCount}`);
-  
-  console.log('\nQuality by artifact type:');
-  for (const [artifactType, data] of Object.entries(qualityReport.artifactTypes)) {
-    console.log(`- ${artifactType}: ${data.averageScore}/100 (${data.qualityRating})`);
-    
-    if (data.dimensionScores) {
-      console.log('  Dimension scores:');
-      for (const [dimension, score] of Object.entries(data.dimensionScores)) {
-        let statusText = '';
-        if (score.status) {
-          statusText = ` [${score.status.toUpperCase()}]`;
-        }
-        console.log(`  - ${dimension}: ${score.averageScore}/100${statusText}`);
-      }
-    }
-  }
-  
-  if (qualityReport.trends && qualityReport.trends.direction) {
-    console.log(`\nOverall trend: ${qualityReport.trends.direction} (${qualityReport.trends.change > 0 ? '+' : ''}${qualityReport.trends.change} points)`);
-  }
-  
-  return { qualityIssues, qualityReport };
-}
-
-/**
- * Run all examples
- */
-async function runAllExamples() {
   try {
-    console.log('=== Knowledge Quality Enhancement System Examples ===\n');
-    
-    // Run examples sequentially
-    await assessQualityExample();
-    await enhanceQualityExample();
-    await defineCriteriaAndThresholdsExample();
-    await batchAssessmentExample();
-    await qualityTrendAnalysisExample();
-    await qualityReportingExample();
-    
-    console.log('\n=== All examples completed successfully ===');
-  } catch (error) {
-    console.error('Error running examples:', error);
-  }
-}
-
-// Run all examples
-runAllExamples();
-
-/**
- * Real-world Integration Example (commented out)
- * This shows how to integrate with a real ConPort client in a production environment
- */
-
-/*
-const { getConPortClient } = require('../utilities/conport-client');
-
-async function realWorldExample() {
-  // Initialize ConPort client
-  const conPortClient = getConPortClient('/path/to/workspace');
-  
-  // Initialize Knowledge Quality Enhancement System
-  const knowledgeQuality = createKnowledgeQuality({
-    workspaceId: '/path/to/workspace',
-    conPortClient,
-    enableValidation: true
-  });
-  
-  // Define a quality improvement workflow
-  
-  // 1. Assess current quality state
-  const qualityReport = await knowledgeQuality.generateQualityReport({
-    artifactTypes: ['decision', 'system_pattern', 'document'],
-    includeDetails: true
-  });
-  
-  console.log(`Overall quality: ${qualityReport.summary.averageQuality}/100 (${qualityReport.summary.qualityRating})`);
-  
-  // 2. Focus on low-quality artifacts
-  for (const artifact of qualityReport.details.lowQualityArtifacts.slice(0, 5)) {
-    console.log(`Enhancing ${artifact.artifactType}:${artifact.artifactId}...`);
-    
-    // Get detailed assessment
-    const assessment = await knowledgeQuality.assessQuality({
-      artifactType: artifact.artifactType,
-      artifactId: artifact.artifactId
+    // Initialize the quality enhancement system
+    console.log('1. Initializing the Knowledge Quality Enhancement System');
+    const qualityEnhancer = createKnowledgeQualityEnhancer({
+      workspaceId: '/projects/api-development',
+      conPortClient: mockConPortClient,
+      enableValidation: true,
+      qualityPolicies: customQualityPolicies,
+      logger: {
+        info: (msg) => console.log(`[Info] ${msg}`),
+        warn: (msg) => console.log(`[Warning] ${msg}`),
+        error: (msg) => console.log(`[Error] ${msg}`)
+      }
     });
     
-    // Determine enhancement types based on low dimension scores
-    const enhancementTypes = assessment.dimensionScores
-      .filter(dimension => dimension.score < 60)
-      .map(dimension => dimension.dimension);
+    await qualityEnhancer.initialize();
+    console.log('✓ Quality enhancement system initialized\n');
     
-    if (enhancementTypes.length > 0) {
-      // Apply appropriate enhancements
-      const enhancementResult = await knowledgeQuality.enhanceQuality({
-        artifactType: artifact.artifactType,
-        artifactId: artifact.artifactId,
-        enhancementTypes,
-        createNewVersion: true
-      });
-      
-      console.log(`Applied ${enhancementResult.appliedEnhancements.length} enhancements`);
-      
-      // Reassess quality after enhancement
-      const enhancedQuality = await knowledgeQuality.assessQuality({
-        artifactType: artifact.artifactType,
-        artifactId: artifact.artifactId,
-        versionId: enhancementResult.enhancedVersionId
-      });
-      
-      console.log(`Quality improved from ${artifact.score} to ${enhancedQuality.overallScore}`);
-    }
+    // Assess the quality of a decision
+    console.log('2. Assessing Quality of a Decision');
+    const qualityAssessment = await qualityEnhancer.assessQuality({
+      artifactType: 'decision',
+      artifactId: 123,
+      criteria: ['completeness', 'clarity', 'consistency', 'correctness'],
+      detailed: true
+    });
+    
+    console.log(`✓ Overall quality score: ${qualityAssessment.overallScore.toFixed(2)}`);
+    console.log('✓ Dimension scores:');
+    Object.entries(qualityAssessment.dimensionScores).forEach(([dimension, score]) => {
+      console.log(`  ${dimension}: ${score.toFixed(2)}`);
+    });
+    console.log('✓ Quality assessment complete\n');
+    
+    // Get enhancement recommendations
+    console.log('3. Getting Enhancement Recommendations');
+    const recommendations = await qualityEnhancer.getEnhancementRecommendations({
+      artifactType: 'decision',
+      artifactId: 123,
+      targetQualityLevel: 'high'
+    });
+    
+    console.log('✓ Enhancement recommendations:');
+    recommendations.recommendations.forEach(rec => {
+      console.log(`  ${rec.priority}. ${rec.description}`);
+      if (rec.details) {
+        console.log(`     Details: ${rec.details}`);
+      }
+    });
+    console.log('✓ Recommendations retrieval complete\n');
+    
+    // Enhance a decision
+    console.log('4. Enhancing a Decision Automatically');
+    const enhancementResult = await qualityEnhancer.enhanceArtifact({
+      artifactType: 'decision',
+      artifactId: 123,
+      enhancements: ['completeness', 'clarity'],
+      applyImmediately: true
+    });
+    
+    console.log('✓ Enhancement results:');
+    console.log(`  Success: ${enhancementResult.success}`);
+    console.log(`  Applied enhancements: ${enhancementResult.appliedEnhancements.join(', ')}`);
+    console.log(`  New quality score: ${enhancementResult.newQualityScore.toFixed(2)}`);
+    console.log('✓ Enhancement complete\n');
+    
+    // Assess multiple artifacts
+    console.log('5. Assessing Quality of All Decisions');
+    const bulkAssessment = await qualityEnhancer.assessBulkQuality({
+      artifactType: 'decision',
+      criteria: ['completeness', 'consistency'],
+      filters: {
+        tags: ['API']
+      }
+    });
+    
+    console.log('✓ Bulk assessment results:');
+    console.log(`  Artifacts assessed: ${bulkAssessment.assessedCount}`);
+    console.log(`  Average quality score: ${bulkAssessment.averageScore.toFixed(2)}`);
+    console.log(`  High quality artifacts: ${bulkAssessment.highQualityCount}`);
+    console.log(`  Low quality artifacts: ${bulkAssessment.lowQualityCount}`);
+    console.log('✓ Bulk assessment complete\n');
+    
+    // Define a quality policy
+    console.log('6. Defining a Custom Quality Policy');
+    await qualityEnhancer.defineQualityPolicy({
+      name: 'critical-security-decisions',
+      scope: {
+        artifactTypes: ['decision'],
+        filter: {
+          tags: ['security', 'critical']
+        }
+      },
+      thresholds: {
+        completeness: 0.9,
+        consistency: 0.85,
+        clarity: 0.8
+      },
+      actions: {
+        onViolation: 'notify',
+        preventUpdateIfBelowThreshold: true
+      }
+    });
+    console.log('✓ Quality policy defined\n');
+    
+    // Apply a quality gate
+    console.log('7. Applying a Quality Gate');
+    const gateResult = await qualityEnhancer.applyQualityGate({
+      gateName: 'release-readiness',
+      artifactTypes: ['decision', 'system_pattern'],
+      filters: {
+        tags: ['API']
+      }
+    });
+    
+    console.log('✓ Quality gate results:');
+    console.log(`  Passed: ${gateResult.passed}`);
+    console.log(`  Artifacts checked: ${gateResult.artifactsChecked}`);
+    console.log(`  Artifacts passed: ${gateResult.artifactsPassed}`);
+    console.log(`  Artifacts failed: ${gateResult.artifactsFailed}`);
+    console.log('✓ Quality gate check complete\n');
+    
+    // Generate quality metrics
+    console.log('8. Generating Quality Metrics');
+    const metrics = await qualityEnhancer.getQualityMetrics({
+      artifactType: 'decision',
+      artifactId: 123,
+      includeHistorical: true,
+      historyDepth: 5
+    });
+    
+    console.log('✓ Quality metrics:');
+    console.log(`  Current score: ${metrics.currentScore.toFixed(2)}`);
+    console.log(`  Trend: ${metrics.trend}`);
+    console.log(`  Areas needing improvement: ${metrics.improvementAreas.join(', ')}`);
+    console.log('✓ Metrics generation complete\n');
+    
+    // Run an enhancement campaign
+    console.log('9. Running an Enhancement Campaign');
+    const campaignResult = await qualityEnhancer.runEnhancementCampaign({
+      targetArtifacts: {
+        artifactTypes: ['decision', 'system_pattern'],
+        qualityScore: { max: 0.7 }
+      },
+      enhancements: ['completeness', 'clarity'],
+      enhancementStrategy: 'auto-where-possible',
+      prioritizeByImpact: true
+    });
+    
+    console.log('✓ Campaign results:');
+    console.log(`  Artifacts processed: ${campaignResult.artifactsProcessed}`);
+    console.log(`  Artifacts enhanced: ${campaignResult.artifactsEnhanced}`);
+    console.log(`  Average quality improvement: ${campaignResult.averageImprovement.toFixed(2)}`);
+    console.log('✓ Enhancement campaign complete\n');
+    
+    // Certify high-quality artifacts
+    console.log('10. Certifying High-Quality Artifacts');
+    const certificationResult = await qualityEnhancer.certifyArtifacts({
+      artifactTypes: ['decision', 'system_pattern'],
+      minimumQualityScore: 0.9,
+      certificationLevel: 'gold',
+      validityPeriod: '180d'
+    });
+    
+    console.log('✓ Certification results:');
+    console.log(`  Artifacts certified: ${certificationResult.artifactsCertified}`);
+    console.log(`  Certification level: ${certificationResult.certificationLevel}`);
+    console.log(`  Valid until: ${certificationResult.validUntil}`);
+    console.log('✓ Certification complete\n');
+    
+    console.log('=== Example Complete ===');
+    
+  } catch (error) {
+    console.error('Example failed:', error.message);
   }
-  
-  // 3. Set quality thresholds
-  await knowledgeQuality.setQualityThreshold({
-    dimension: 'completeness',
-    threshold: 75,
-    alertLevel: 'warning'
-  });
-  
-  await knowledgeQuality.setQualityThreshold({
-    dimension: 'accuracy',
-    threshold: 80,
-    alertLevel: 'error'
-  });
-  
-  // 4. Generate updated report
-  const updatedReport = await knowledgeQuality.generateQualityReport({
-    artifactTypes: ['decision', 'system_pattern', 'document']
-  });
-  
-  console.log(`Updated quality: ${updatedReport.summary.averageQuality}/100 (${updatedReport.summary.qualityRating})`);
-  
-  // 5. Log progress
-  await conPortClient.log_progress({
-    workspace_id: '/path/to/workspace',
-    description: 'Knowledge quality improvement',
-    status: 'DONE'
-  });
-  
-  // 6. Log decision
-  await conPortClient.log_decision({
-    workspace_id: '/path/to/workspace',
-    summary: 'Implemented knowledge quality standards',
-    rationale: `Set quality thresholds for completeness (${threshold1.threshold}) and accuracy (${threshold2.threshold})`
-  });
 }
-*/
+
+// Run the example
+runExample().catch(err => console.error('Unexpected error:', err));
+
+/**
+ * Real-world Use Case Scenarios:
+ * 
+ * 1. Quality Assurance
+ *    Ensure that all knowledge artifacts meet minimum quality standards
+ *    before they are used for critical decision-making or implementation.
+ * 
+ * 2. Knowledge Improvement
+ *    Identify and enhance low-quality knowledge artifacts to improve
+ *    overall knowledge base quality over time.
+ * 
+ * 3. Quality Gates
+ *    Establish quality checkpoints for critical project phases,
+ *    ensuring knowledge meets standards before proceeding.
+ * 
+ * 4. Quality Metrics
+ *    Track knowledge quality metrics over time to identify trends
+ *    and focus improvement efforts on areas with the greatest need.
+ * 
+ * 5. Certification
+ *    Certify high-quality knowledge artifacts to indicate their reliability
+ *    and trustworthiness for critical use cases.
+ */

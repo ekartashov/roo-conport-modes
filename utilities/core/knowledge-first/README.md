@@ -27,7 +27,7 @@ This component follows the standardized three-layer architecture:
 const { 
   KnowledgeFirstGuidelines,
   KnowledgeSession
-} = require('./utilities/phase-1/knowledge-first');
+} = require('./utilities/core/knowledge-first');
 
 // Initialize a session
 const session = await KnowledgeFirstGuidelines.initialize({

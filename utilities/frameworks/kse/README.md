@@ -61,7 +61,7 @@ KSE integrates with several ConPort Phase 4 components:
 ### Creating a KSE Instance
 
 ```javascript
-const { createKSE } = require('./utilities/phase-4/kse');
+const { createKSE } = require('./utilities/frameworks/kse');
 
 const kse = createKSE({
   conportClient: conportClient, // Required
@@ -232,7 +232,7 @@ const {
   SynthesisStrategyRegistry, 
   SynthesisRuleEngine,
   KnowledgeSynthesizer 
-} = require('./utilities/phase-4/kse');
+} = require('./utilities/frameworks/kse');
 
 const customRegistry = new SynthesisStrategyRegistry();
 customRegistry.register('custom', myCustomStrategy);
