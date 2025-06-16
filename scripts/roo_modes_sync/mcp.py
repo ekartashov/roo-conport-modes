@@ -10,7 +10,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Union, Tuple
+from typing import Dict, Any, List
 
 try:
     from .core.sync import ModeSync
@@ -309,8 +309,6 @@ class ModesMCPServer:
             Tool call response
         """
         try:
-            target = arguments.get('target', 'both')
-            
             # Use backup_all method which returns list of backup paths
             backup_paths = self.backup_manager.backup_all()
             

@@ -122,7 +122,7 @@ class TestCLIIntegration:
         assert roomodes_file.read_text() == modified_content
         
         # Step 3: List backups
-        list_result = subprocess.run([
+        subprocess.run([
             sys.executable, str(cli_script), "list-backups",
             "--project-dir", str(temp_project_dir)
         ], capture_output=True, text=True)
@@ -220,7 +220,7 @@ class TestCLIBackupManager:
             
             # Create backup
             backup_manager = BackupManager(project_dir)
-            backup_path = backup_manager.backup_local_roomodes()
+            backup_manager.backup_local_roomodes()
             
             # Modify original
             roomodes_file.write_text("Modified content")

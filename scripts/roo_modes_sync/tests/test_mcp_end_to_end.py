@@ -5,10 +5,9 @@ End-to-end test for MCP server functionality.
 Tests the complete MCP server workflow including backup and sync operations.
 """
 
-import json
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 try:
     from mcp import ModesMCPServer

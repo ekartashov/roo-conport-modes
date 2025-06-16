@@ -1,17 +1,10 @@
 """Test cases for YAML structure validation functionality."""
 
 import pytest
-import yaml
-import tempfile
-import os
-from pathlib import Path
-from typing import Dict, Any
 
 from roo_modes_sync.core.validation import (
-    ModeValidator, 
-    ValidationLevel, 
+    ModeValidator,
     ValidationResult,
-    ModeValidationError,
     YAMLStructureError
 )
 

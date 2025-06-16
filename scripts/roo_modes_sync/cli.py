@@ -14,7 +14,7 @@ import os
 import sys
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Union
+# typing imports removed as they're not used in this file
 
 # Handle both direct execution and module imports
 try:

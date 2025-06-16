@@ -5,9 +5,7 @@ Tests for backup and restore functionality for Roo modes files.
 
 import pytest
 import tempfile
-import shutil
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 from roo_modes_sync.core.backup import BackupManager, BackupError
 
@@ -318,7 +316,6 @@ class TestBackupManager:
     
     def test_backup_preserves_file_permissions(self, backup_manager, temp_project_dir):
         """Test that backup preserves original file permissions."""
-        import stat
         
         # Create a file with specific permissions
         roomodes_file = temp_project_dir / '.roomodes'

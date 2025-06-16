@@ -5,9 +5,7 @@ Integration tests for backup functionality with the sync system.
 
 import pytest
 import tempfile
-import shutil
 from pathlib import Path
-from unittest.mock import patch
 
 from roo_modes_sync.core.backup import BackupManager, BackupError
 from roo_modes_sync.core.sync import ModeSync
@@ -57,8 +55,9 @@ groups:
         sync, project_path = sync_with_backup
         
         # Set target paths
-        local_target = project_path / '.roomodes'
-        global_target = project_path / 'global.roomodes'
+        # Target files exist and should be backed up before sync
+        # local_target = project_path / '.roomodes'
+        # global_target = project_path / 'global.roomodes'
         
         # Ensure backup manager creates directories
         backup_manager = sync.backup_manager

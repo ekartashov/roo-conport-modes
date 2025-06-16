@@ -10,18 +10,18 @@ Provides functionality for discovering and categorizing mode YAML files:
 """
 
 import re
-import os
 import logging
 from pathlib import Path
 import yaml
-from typing import Dict, List, Optional, Any, Set, Tuple
+from typing import Dict, List, Optional, Any
 
 # Try relative imports first, fall back to absolute imports
 try:
     from ..exceptions import DiscoveryError
 except ImportError:
     # Fallback for direct script execution
-    from exceptions import DiscoveryError
+    # from exceptions import DiscoveryError  # Currently unused
+    pass
 
 # Configure logging
 logger = logging.getLogger(__name__)

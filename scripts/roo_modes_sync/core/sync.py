@@ -14,7 +14,7 @@ import shutil
 import os
 import logging
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Union, Tuple
+from typing import Dict, Any, Optional
 
 # Try relative imports first, fall back to absolute imports
 try:
@@ -25,9 +25,9 @@ try:
     from .backup import BackupManager, BackupError
 except ImportError:
     # Fallback for direct script execution
-    from exceptions import SyncError, ConfigurationError
+    from exceptions import SyncError
     from discovery import ModeDiscovery
-    from validation import ModeValidator, ValidationLevel, ValidationResult
+    from validation import ModeValidator, ValidationLevel
     from ordering import OrderingStrategyFactory
     from backup import BackupManager, BackupError
 

@@ -7,7 +7,7 @@ import re
 import enum
 import yaml
 from pathlib import Path
-from typing import Dict, Any, List, Union, Optional, Set
+from typing import Dict, Any, List, Union, Optional
 
 
 class ValidationLevel(enum.Enum):

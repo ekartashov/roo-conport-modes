@@ -7,11 +7,9 @@ Tests the command line interface including backup, restore, and list-backups com
 
 import pytest
 import tempfile
-import os
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-from io import StringIO
+from unittest.mock import patch
 
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -24,9 +22,8 @@ except ImportError:
     # If direct import fails, add core directory to path
     core_dir = Path(__file__).parent.parent / "core"
     sys.path.insert(0, str(core_dir))
-    from backup import BackupManager, BackupError
+    from backup import BackupManager
     sys.path.insert(0, str(Path(__file__).parent.parent))
-    from exceptions import SyncError
 
 # Import CLI functions with fallback mechanism
 try:
@@ -138,7 +135,7 @@ class TestCLIBackupCommands:
                 project_dir=temp_dir
             )
             
-            result = backup_files(args)
+            backup_files(args)
             
             # Should still return 1 since no backups were created
             captured = capsys.readouterr()
@@ -193,7 +190,7 @@ class TestCLIBackupCommands:
             backup_file=None
         )
         
-        result = restore_files(args)
+        restore_files(args)
         
         # Should return 1 since no files were restored
         captured = capsys.readouterr()

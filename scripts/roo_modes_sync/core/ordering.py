@@ -3,9 +3,7 @@
 Mode ordering strategies for synchronization.
 """
 
-from pathlib import Path
-from typing import Dict, List, Any, Set
-import re
+from typing import Dict, List, Any
 
 try:
     from ..exceptions import ConfigurationError
