@@ -1,284 +1,192 @@
 # Roo Modes Collection
 
-## Overview
+A sophisticated AI system extension library providing enhanced modes for the Roo AI assistant, featuring comprehensive ConPort knowledge management integration and structured development workflows.
 
-This repository contains custom modes for the Roo multi-mode AI system, enabling specialized AI behaviors for different software development tasks through interactive mode management.
+## 🏗️ Project Structure
+
+This project follows the **Three-Layer Component Architecture Pattern** with phase-based organization:
+
+```
+roo-conport-modes/
+├── modes/                    # Core mode definitions (validation, core, integration)
+├── templates/               # Mode templates and scaffolding
+├── docs/                    # Documentation hub
+│   ├── guides/             # Mode enhancement guides and how-tos
+│   ├── examples/           # Usage examples and demonstrations
+│   ├── analysis/           # Technical design documentation
+│   └── phases/             # Phase-specific documentation
+│       ├── phase-1/        # Foundation & Core Architecture
+│       ├── phase-2/        # Mode Enhancements
+│       ├── phase-3/        # Advanced Knowledge Management
+│       └── phase-4/        # Current development phase
+├── utilities/              # Utility functions and enhancements
+│   ├── core/              # Core utility functions
+│   └── enhancements/      # Mode enhancement utilities
+├── scripts/               # Development and automation scripts
+├── tools/                 # Development tools and utilities
+├── tests/                 # Test suites
+└── context_portal/        # ConPort knowledge management database
+```
+
+## 📚 Documentation Guide
+
+### Quick Navigation
+
+- **Getting Started**: [`docs/guides/knowledge-first-initialization-guide.md`](docs/guides/knowledge-first-initialization-guide.md)
+- **Mode Enhancements**: [`docs/guides/`](docs/guides/) - Individual mode enhancement documentation
+- **Usage Examples**: [`docs/examples/`](docs/examples/) - Practical implementation examples
+- **Technical Analysis**: [`docs/analysis/`](docs/analysis/) - Deep-dive technical documentation
+- **Development Phases**: [`docs/phases/`](docs/phases/) - Historical and current development documentation
+
+### Documentation Categories
+
+#### 🎯 Guides (`docs/guides/`)
+Practical how-to documentation for implementing and using mode enhancements:
+- Mode-specific enhancement guides (ask, code, debug, architect, etc.)
+- Knowledge management workflows
+- ConPort validation strategies
+- Cross-mode integration patterns
+
+#### 💡 Examples (`docs/examples/`)
+Working code examples and usage demonstrations:
+- Mode enhancement usage examples
+- Phase-specific implementation examples
+- Integration pattern demonstrations
+
+#### 🔬 Analysis (`docs/analysis/`)
+Technical design documentation and architectural analysis:
+- Sync system design and diagnostics
+- Package architecture documentation
+- TDD strategies and validation enhancements
+
+#### 📈 Phases (`docs/phases/`)
+Development phase documentation showing project evolution:
+- **Phase 1**: Foundation & Core Architecture
+- **Phase 2**: Mode Enhancements 
+- **Phase 3**: Advanced Knowledge Management
+- **Phase 4**: Current Development (AMO integration, workflow optimization)
+
+## 🛠️ Utilities Organization
+
+### Core Utilities (`utilities/core/`)
+Fundamental utility functions for knowledge management:
+- `conport-validation-manager.js` - ConPort data validation
+- `data-locality-detector.js` - Data locality detection
+- `knowledge-first-guidelines.js` - Knowledge-first development patterns
+- `knowledge-metrics-dashboard.js` - Knowledge quality metrics
+- `validation-checkpoints.js` - Validation checkpoint system
+
+### Enhancement Utilities (`utilities/enhancements/`)
+Mode-specific enhancement utilities and integration helpers.
+
+## 🧩 Mode Architecture
+
+Each mode follows the **Three-Layer Component Architecture**:
+
+1. **Validation Layer**: Input validation and constraint checking
+2. **Core Layer**: Primary mode logic and functionality  
+3. **Integration Layer**: ConPort integration and knowledge management
+
+## 📊 Development Phases
+
+### Current Status: Phase 4
+**Focus**: AMO (Adaptive Mode Orchestration) integration and workflow optimization
+
+### Historical Development
+- **Phase 1** (Complete): Foundation architecture and core modes
+- **Phase 2** (Complete): Mode enhancement system
+- **Phase 3** (Complete): Advanced knowledge management
+- **Phase 4** (In Progress): AMO integration and optimization
+
+## 🔧 Development Setup
+
+### Prerequisites
+- Node.js for JavaScript utilities
+- Python 3.x for automation scripts
+- ConPort MCP server for knowledge management
 
 ### Quick Start
 ```bash
-# View available custom modes
-cat ~/.config/VSCodium/User/globalStorage/rooveterinaryinc.roo-cline/settings/custom_modes.yaml
+# Clone and navigate to project
+git clone <repository-url>
+cd roo-conport-modes
 
-# Switch to Mode Manager mode
-/mode mode-manager
+# Initialize ConPort (if needed)
+# ConPort will be created automatically when first used
 
-# Create a new mode
-"I want to create a mode for [specific task]"
+# Run tests
+cd scripts && python run_tests.py
 ```
 
-## Quick Start
+### Testing
+- **Unit Tests**: `tests/unit/` - Component-level testing
+- **Integration Tests**: `scripts/roo_modes_sync/tests/` - System integration testing
+- **Test Runner**: `scripts/run_tests.py` - Unified test execution
 
-### 1. Sync Modes to Global Config
-```bash
-# Preview the sync (recommended first step)
-python scripts/run_sync.py --dry-run
-# or run as a module
-python -m scripts.sync_system --dry-run
+## 📋 Key Features
 
-# Perform the actual sync
-python scripts/run_sync.py
-# or run as a module
-python -m scripts.sync_system
+### 🧠 ConPort Knowledge Management
+- Comprehensive decision logging and tracking
+- System pattern documentation
+- Progress tracking with relationship mapping
+- Custom data storage for project-specific information
 
-# Test the sync script
-python scripts/test.py
-```
+### 🎭 Enhanced Modes
+- **Code Mode**: Advanced coding assistance with pattern recognition
+- **Architect Mode**: System design and planning capabilities
+- **Debug Mode**: Comprehensive debugging and troubleshooting
+- **Ask Mode**: Intelligent Q&A with context awareness
+- **Orchestrator Mode**: Workflow coordination and task delegation
+- **ConPort Maintenance Mode**: Knowledge database management
 
-### 2. Demo YAML Output Format
-```bash
-# See the enhanced YAML format
-python tools/demo.py
-```
+### 🔄 Cross-Mode Integration
+- Seamless knowledge sharing between modes
+- Unified context management
+- Temporal knowledge tracking
+- Automated workflow orchestration
 
-### 3. Use a Mode
-```bash
-# Switch to any available mode
-/mode prompt-enhancer
-/mode conport-maintenance
-/mode code
-```
+## 🎯 ConPort Integration
 
-## Installation
+This project leverages ConPort for comprehensive knowledge management:
 
-### Quick Setup
-```bash
-# Copy local modes to global configuration
-cp modes/*.yaml ~/.config/VSCodium/User/globalStorage/rooveterinaryinc.roo-cline/settings/
+- **Decision Tracking**: All architectural and implementation decisions
+- **Pattern Documentation**: Reusable system and coding patterns  
+- **Progress Management**: Development milestone tracking
+- **Custom Knowledge**: Project-specific information and constraints
+- **Relationship Mapping**: Knowledge graph with interconnected concepts
 
-# Or manually append to existing configuration
-cat modes/prompt-enhancer.yaml >> ~/.config/VSCodium/User/globalStorage/rooveterinaryinc.roo-cline/settings/custom_modes.yaml
-cat modes/conport-maintenance.yaml >> ~/.config/VSCodium/User/globalStorage/rooveterinaryinc.roo-cline/settings/custom_modes.yaml
+### ConPort Decision History
+Key decisions are tracked and can be referenced:
+- **Decision #85**: Directory structure standardization (ongoing)
+- **System Pattern #55**: Three-Layer Component Architecture Pattern
 
-# Restart Roo to load new modes
-# Test installation
-/mode prompt-enhancer
-/mode conport-maintenance
-```
+## 🤝 Contributing
 
-For detailed installation instructions, see [Local Mode Installation Guide](docs/guides/local-mode-installation.md).
+### Development Workflow
+1. Follow the Three-Layer Architecture Pattern
+2. Document decisions in ConPort using [`log_decision`](utilities/core/conport-validation-manager.js)
+3. Update progress tracking for significant milestones
+4. Add usage examples for new features
+5. Update relevant documentation in [`docs/guides/`](docs/guides/)
 
-### Requirements
-- Roo system with custom mode support
-- ConPort MCP server (for ConPort Maintenance mode)
-- VSCodium/VSCode with Roo extension
+### Code Organization
+- Place new modes in [`modes/`](modes/) following established patterns
+- Add utilities to [`utilities/core/`](utilities/core/) or [`utilities/enhancements/`](utilities/enhancements/)
+- Document in [`docs/guides/`](docs/guides/) with examples in [`docs/examples/`](docs/examples/)
+- Use ConPort for decision and pattern documentation
 
-## Documentation
+## 📖 Further Reading
 
-For detailed information about the project structure, individual modes, guides, and examples, please see our comprehensive documentation:
+- **Architecture Overview**: [`docs/analysis/sync-system-package-design.md`](docs/analysis/sync-system-package-design.md)
+- **Knowledge Management**: [`docs/guides/knowledge-first-guidelines.md`](docs/guides/knowledge-first-guidelines.md)
+- **Current Development**: [`docs/phases/phase-4/`](docs/phases/phase-4/)
+- **ConPort Guide**: [`docs/guides/conport-validation-strategy.md`](docs/guides/conport-validation-strategy.md)
 
-- **[Project Documentation Hub](docs/README.md)**: Your starting point for all project-related documentation.
+---
 
-## Usage
+**Version**: Phase 4 Development
+**Architecture**: Three-Layer Component Pattern
+**Knowledge Management**: ConPort-integrated
+**Status**: Active Development
 
-### Available Modes
-
-- **🏗️ Architect** (`architect`) - High-level planning and system design.
-- **❓ Ask** (`ask`) - Answers conceptual or informational questions about software development.
-- **💻 Code** (`code`) - Enhanced code writing, reviewing, and refactoring with ConPort integration.
-- **🗃️ ConPort Maintenance** (`conport-maintenance`) - Database maintenance and optimization for ConPort.
-- **🪲 Debug** (`debug`) - Diagnosis, troubleshooting, and fixing buggy code.
-- **📝 Docs** (`docs`) - Creates, audits, and manages technical documentation.
-- **🛠️ Mode Manager** (`mode-manager`) - Interactive creation and management of Roo modes.
-- **🪃 Orchestrator** (`orchestrator`) - Coordinates complex tasks by delegating to specialized modes.
-- **🪄 Prompt Enhancer** (`prompt-enhancer`) - Refines prompts for better LLM output with project context.
-- **🪄 Prompt Enhancer (Isolated)** (`prompt-enhancer-isolated`) - Generic prompt enhancement without project context.
-
-### Local Mode Files
-
-This repository now contains local mode definitions in the `modes/` directory:
-- [`architect.yaml`](modes/architect.yaml:0) - High-level planning and system design mode.
-- [`ask.yaml`](modes/ask.yaml:0) - Conceptual and informational question-answering mode.
-- [`code.yaml`](modes/code.yaml:0) - Enhanced Code mode with automatic ConPort docs (overrides built-in).
-- [`conport-maintenance.yaml`](modes/conport-maintenance.yaml:0) - ConPort database management and maintenance mode.
-- [`debug.yaml`](modes/debug.yaml:0) - Code diagnosis and troubleshooting mode.
-- [`docs.yaml`](modes/docs.yaml:0) - Documentation creation, auditing, and management mode.
-- [`mode-manager.yaml`](modes/mode-manager.yaml:0) - Interactive creation and management of Roo modes.
-- [`orchestrator.yaml`](modes/orchestrator.yaml:0) - Strategic workflow orchestration mode.
-- [`prompt-enhancer.yaml`](modes/prompt-enhancer.yaml:0) - Project-aware prompt enhancement and structuring.
-- [`prompt-enhancer-isolated.yaml`](modes/prompt-enhancer-isolated.yaml:0) - Generic prompt enhancement without project context.
-
-### Project Structure
-
-```
-roo-modes/
-├── README.md                          # This file
-├── modes/                             # Local mode definitions
-│   ├── architect.yaml                 # System architecture and planning mode
-│   ├── ask.yaml                       # Q&A mode for software development topics
-│   ├── code.yaml                      # Code mode with enhanced docs (overrides built-in)
-│   ├── conport-maintenance.yaml       # ConPort maintenance mode
-│   ├── debug.yaml                     # Debugging and troubleshooting mode
-│   ├── docs.yaml                      # Documentation mode (creator & auditor)
-│   ├── mode-manager.yaml              # Mode management mode
-│   ├── orchestrator.yaml              # Workflow orchestration mode
-│   ├── prompt-enhancer.yaml           # Project-aware prompt enhancement mode
-│   └── prompt-enhancer-isolated.yaml  # Generic prompt enhancement mode
-├── scripts/                           # Utility and automation scripts
-│   ├── run_sync.py                    # Convenience runner for the sync system
-│   ├── sync_system/                   # Consolidated sync system package
-│   │   ├── __init__.py                # Package initialization
-│   │   ├── __main__.py                # Module entry point
-│   │   ├── pyproject.toml             # Package build configuration
-│   │   ├── sync.py                    # Main sync implementation with relative path detection
-│   │   └── tests/                     # Test suite for sync system
-│   │       ├── __init__.py            # Test package initialization
-│   │       ├── test_discovery.py      # Tests for mode discovery
-│   │       ├── test_integration.py    # Integration tests
-│   │       ├── test_ordering.py       # Tests for mode ordering
-│   │       └── test_validation.py     # Tests for mode validation
-│   └── test.py                        # Test suite for original sync script (legacy)
-├── tools/                             # Development and demonstration tools
-│   └── demo.py         # YAML output format demo
-├── docs/                              # Detailed docs
-│   ├── mode-manager-guide.md          # Comprehensive Mode Manager guide
-│   ├── prompt-enhancer-guide.md       # Project-aware Prompt Enhancer usage guide
-│   ├── prompt-enhancer-isolated-guide.md # Generic Prompt Enhancer usage guide
-│   ├── conport-maintenance-guide.md   # ConPort Maintenance guide
-│   ├── code-guide.md                  # Enhanced Code mode guide
-│   └── local-mode-installation.md     # Installation guide for local modes
-├── examples/                          # Interactive examples and workflows
-│   ├── mode-manager-examples.md       # Real-world usage scenarios
-│   ├── prompt-enhancer-examples.md    # Project-aware prompt enhancement workflows
-│   ├── prompt-enhancer-isolated-examples.md # Generic prompt enhancement workflows
-│   └── conport-maintenance-examples.md # ConPort maintenance operations
-├── analysis/                          # Project analysis and design documents
-│   ├── enhanced-prompt-enhancer-design.md # Enhanced prompt enhancer design
-│   ├── enhanced-prompt-enhancer-config.md # Configuration docs
-│   ├── enhanced-prompt-enhancer-implementation.md # Implementation details
-│   └── prompt-enhancer-solution-analysis.md # Solution analysis
-├── templates/                         # Mode templates for quick creation
-│   ├── README.md                      # Template usage guide
-│   ├── basic-mode-template.yaml       # General-purpose mode template
-│   ├── restricted-edit-mode-template.yaml  # File-restricted editor template
-│   └── analysis-mode-template.yaml    # Analysis-focused mode template
-└── context_portal/                    # ConPort database and vector storage
-    ├── context.db                     # SQLite database for ConPort
-    └── conport_vector_data/           # Vector embeddings storage
-```
-
-## Configuration
-
-Modes are defined in: `~/.config/VSCodium/User/globalStorage/rooveterinaryinc.roo-cline/settings/custom_modes.yaml`
-
-### Mode Structure
-
-```yaml
-- slug: mode-identifier
-  name: 🔧 Mode Display Name
-  roleDefinition: >-
-    Core role and expertise description
-  whenToUse: >-
-    Activation criteria and use cases
-  customInstructions: >-
-    Detailed behavior and implementation guidance
-  groups:
-    - read          # File reading access
-    - edit          # File modification access (with optional restrictions)
-    - browser       # Web browsing capabilities
-    - command       # CLI command execution
-    - mcp           # MCP server integration
-  source: global
-```
-
-## Examples
-
-### Creating a Database Mode
-
-```bash
-/mode mode-manager
-"I want to create a mode for database management"
-
-# Mode Manager will guide you through:
-# 1. Database systems (PostgreSQL, MySQL, etc.)
-# 2. File access needs (migrations, schemas)
-# 3. Tool requirements (CLI, ConPort)
-# 4. Scenario validation
-```
-
-### Using Templates
-
-```bash
-# Copy a template
-cp templates/basic-mode-template.yaml my-new-mode.yaml
-
-# Customize the configuration
-# Add to custom_modes.yaml
-# Test with Mode Manager
-```
-
-## Troubleshooting
-
-### Common Issues
-
-- **Mode Not Loading**: Check YAML syntax and required fields
-- **Permission Errors**: Verify file access patterns and tool permissions
-- **Mode Conflicts**: Use Mode Manager to analyze and resolve overlaps
-
-### Validation
-
-```bash
-# Test mode loading
-/mode your-new-mode
-
-# Validate permissions
-"Test file access and tool usage"
-
-# Check integration
-"Verify ConPort and MCP functionality"
-```
-
-## Contributing
-
-We welcome contributions! Please see our **[Contributing Guidelines](CONTRIBUTING.md)** for detailed information on how to get involved, report issues, and submit pull requests.
-
-All contributors are expected to adhere to our **[Code of Conduct](CODE_OF_CONDUCT.md)**.
-
-### Quick Summary for Mode Contributions:
-1. Use Mode Manager for interactive mode creation.
-2. Follow templates in the [`templates/`](templates/) directory for consistency.
-3. Test thoroughly with real-world scenarios.
-4. Document the mode's purpose, usage patterns, and any specific examples in the [`docs/`](docs/) directory.
-5. Validate your new mode against the existing mode ecosystem to ensure compatibility and avoid conflicts.
-
-## Development Tools
-
-### Scripts ([`scripts/`](scripts/))
-- **[`run_sync.py`](scripts/run_sync.py)** - Convenience runner for the sync system
-- **[`sync_system/`](scripts/sync_system/)** - Consolidated sync system as a Python package
-  - **[`sync.py`](scripts/sync_system/sync.py)** - Main sync implementation with relative path detection
-  - **[`tests/`](scripts/sync_system/tests/)** - Test suite for sync system
-- **[`test.py`](scripts/test.py)** - Test suite for original sync script (legacy)
-
-### Tools ([`tools/`](tools/))
-- **[`demo.py`](tools/demo.py)** - Demonstrate enhanced YAML output format
-
-## Resources
-
-### Documentation
-- [Mode Manager Guide](docs/guides/mode-manager-guide.md) - Comprehensive mode management docs
-- [Prompt Enhancer Guide](docs/guides/prompt-enhancer-guide.md) - Project-aware prompt enhancement workflows and techniques
-- [Prompt Enhancer (Isolated) Guide](docs/guides/prompt-enhancer-isolated-guide.md) - Generic prompt enhancement without project context
-- [ConPort Maintenance Guide](docs/guides/conport-maintenance-guide.md) - Database maintenance procedures and best practices
-- [Enhanced Code Guide](docs/guides/code-enhanced-guide.md) - Coding with automatic knowledge docs
-- [Local Mode Installation](docs/guides/local-mode-installation.md) - Installation guide for local mode definitions
-
-### Examples and Workflows
-- [Mode Manager Examples](docs/examples/mode-manager-examples.md) - Real-world mode creation scenarios
-- [Prompt Enhancer Examples](docs/examples/prompt-enhancer-examples.md) - Project-aware prompt enhancement sessions
-- [Prompt Enhancer (Isolated) Examples](docs/examples/prompt-enhancer-isolated-examples.md) - Generic prompt enhancement workflows
-- [ConPort Maintenance Examples](docs/examples/conport-maintenance-examples.md) - Database maintenance and optimization workflows
-
-### Templates and Analysis
-- [Mode Templates](templates/) - Starting points for creating new modes
-- [Analysis Documents](analysis/) - Project design and analysis docs
-- [Local Modes](modes/) - Ready-to-use mode definitions for immediate deployment
+This README reflects the clean reorganization completed in [ConPort Decision #85] continuing the established standardization work.
