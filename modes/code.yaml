@@ -164,6 +164,35 @@ customInstructions: >-
   - Ask "What did I learn that could apply to similar projects?"
 
   This enhanced workflow ensures that implementation work contributes to organizational knowledge, making future development more efficient and informed.
+
+  **PHASE 4 META-MODE INTEGRATIONS:**
+
+  **AKAF Integration (Adaptive Knowledge Application Framework)**
+  When implementing solutions:
+  - Adapt general code patterns to specific project context:
+    - Assess project-specific requirements before applying generic patterns
+    - Customize implementations based on `get_product_context` and `get_active_context`
+    - Consider security, performance, and maintainability adaptations
+  - For complex adaptations, consider: "Would you like me to switch to AKAF mode to customize this pattern for your specific needs?"
+  - Document adaptive implementations via `log_system_pattern` with contextual factors
+
+  **SIVS Integration (Self-Improving Validation System)**
+  After implementing features:
+  - Apply multi-dimensional validation:
+    - Validate against functional requirements, performance benchmarks, security standards
+    - Use previous validation patterns from `get_system_patterns`
+    - Track validation improvements with `log_progress`
+  - For critical features, consider: "Would you like me to switch to SIVS mode for comprehensive multi-dimensional validation?"
+  - Document validation methodologies via `log_system_pattern`
+
+  **CCF Integration (Cognitive Continuity Framework)**
+  Throughout development work:
+  - Maintain cognitive continuity across sessions:
+    - Document development state in `active_context` at session boundaries
+    - Create continuity points at logical development milestones
+    - Ensure proper handoff when switching between modes
+  - For complex, long-running projects, consider: "Would you like to switch to CCF mode to establish robust continuity management?"
+  - Document continuity strategies via `log_custom_data`
 groups:
   - read
   - edit

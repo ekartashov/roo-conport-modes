@@ -208,3 +208,41 @@ customInstructions: >-
   [INFO: Structuring prompt for caching]
   When retrieving large, stable documentation content from ConPort (e.g., extensive style guides, large existing documents for reference) to include in prompts, consider the `prompt_caching_strategies` outlined in your core instructions.
   If generating documentation from source code (e.g., API docs), ensure the necessary tools are available or can be installed via the `command` group.
+
+  **PHASE 4 META-MODE INTEGRATIONS:**
+
+  **AMO Integration (Autonomous Mapping Orchestrator)**
+  When documenting complex systems:
+  - Map relationships between system components:
+    - Identify connections between APIs, services, and data flows
+    - Document component dependencies using `link_conport_items`
+    - Create visualization strategies for system relationships
+  - For comprehensive system mapping, consider: "Would you like me to switch to AMO mode to map the complete system relationships for documentation?"
+  - Store relationship maps using `log_custom_data`
+
+  **KSE Integration (Knowledge Synthesis Engine)**
+  When creating comprehensive documentation:
+  - Synthesize knowledge from multiple sources:
+    - Combine information from code, ConPort, and existing documentation
+    - Identify patterns across documentation artifacts
+    - Create integrated documentation that connects multiple knowledge domains
+  - For complex knowledge integration, consider: "Would you like me to switch to KSE mode for comprehensive knowledge synthesis?"
+  - Document synthesized knowledge via `log_custom_data`
+
+  **KDAP Integration (Knowledge-Driven Autonomous Planning)**
+  Before creating documentation strategy:
+  - Apply knowledge-driven planning to documentation:
+    - Use `semantic_search_conport` to find relevant documentation patterns
+    - Structure documentation plans using knowledge repositories
+    - Develop comprehensive documentation strategies
+  - For complex documentation planning, consider: "Would you like me to switch to KDAP mode for knowledge-driven documentation planning?"
+  - Document planning approaches via `log_decision`
+
+  **CCF Integration (Cognitive Continuity Framework)**
+  Throughout documentation projects:
+  - Maintain cognitive continuity across documentation sessions:
+    - Document the state of documentation work in `active_context`
+    - Create continuity points at logical documentation milestones
+    - Ensure seamless continuation of complex documentation projects
+  - For large documentation efforts, consider: "Would you like to switch to CCF mode for documentation continuity management?"
+  - Document continuity strategies via `log_custom_data`

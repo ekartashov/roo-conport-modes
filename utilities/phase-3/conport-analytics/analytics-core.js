@@ -1,265 +1,248 @@
 /**
- * Advanced ConPort Analytics - Knowledge-First Core
+ * Advanced ConPort Analytics - Core Layer
  * 
- * This module provides core analytics functionality that operates independently
- * of ConPort integration, focusing on universal analytics principles and algorithms.
+ * This module provides the core business logic for analytics
+ * without direct dependencies on ConPort or other external systems.
  */
 
 /**
- * Generates analytics based on provided data and options
+ * Generates analytics from ConPort data
  *
- * @param {Object} options - The analytics options
- * @param {Object} data - The data to analyze
- * @returns {Object} The analytics results
+ * @param {Object} options - Analytics options
+ * @param {Object} data - ConPort data to analyze
+ * @returns {Object} Generated analytics results
  */
 function generateAnalytics(options, data) {
   const { 
-    timeframe, startDate, endDate, artifactTypes = [], 
-    dimensions = [], filters = {}, includeVersions = false,
-    normalizeResults = false, outputFormat = 'json', limit
+    dimensions = [], 
+    timeframe,
+    startDate,
+    endDate,
+    normalizeResults = false,
+    limit
   } = options;
   
-  // Preprocess data based on artifact types
-  const filteredData = filterDataByArtifactTypes(data, artifactTypes);
+  // Initialize results structure
+  const results = {
+    timestamp: new Date().toISOString(),
+    options: { ...options },
+    count: calculateCounts(data),
+    query: { ...options }
+  };
   
-  // Apply time-based filtering
-  const timeFilteredData = filterDataByTimeframe(filteredData, timeframe, startDate, endDate);
-  
-  // Apply additional filters
-  const fullyFilteredData = applyFilters(timeFilteredData, filters);
-  
-  // Generate analytics based on requested dimensions
-  const analyticsResults = {};
-  
-  if (dimensions.length === 0) {
-    // Default dimensions if none specified
-    analyticsResults.count = countArtifacts(fullyFilteredData);
-    analyticsResults.typeDistribution = analyzeTypeDistribution(fullyFilteredData);
-    analyticsResults.timeDistribution = analyzeTimeDistribution(fullyFilteredData, timeframe);
-    analyticsResults.summary = generateSummary(fullyFilteredData);
-  } else {
-    // Process requested dimensions
-    for (const dimension of dimensions) {
-      switch (dimension) {
-        case 'count':
-          analyticsResults.count = countArtifacts(fullyFilteredData);
-          break;
-        case 'types':
-          analyticsResults.typeDistribution = analyzeTypeDistribution(fullyFilteredData);
-          break;
-        case 'time':
-          analyticsResults.timeDistribution = analyzeTimeDistribution(fullyFilteredData, timeframe);
-          break;
-        case 'tags':
-          analyticsResults.tagDistribution = analyzeTagDistribution(fullyFilteredData);
-          break;
-        case 'complexity':
-          analyticsResults.complexityAnalysis = analyzeComplexity(fullyFilteredData);
-          break;
-        case 'quality':
-          analyticsResults.qualityMetrics = analyzeQuality(fullyFilteredData);
-          break;
-        case 'relationships':
-          analyticsResults.relationshipMetrics = analyzeRelationships(fullyFilteredData);
-          break;
-        case 'activity':
-          analyticsResults.activityMetrics = analyzeActivity(fullyFilteredData);
-          break;
-        case 'trends':
-          analyticsResults.trendAnalysis = analyzeTrends(fullyFilteredData, timeframe);
-          break;
-        case 'summary':
-          analyticsResults.summary = generateSummary(fullyFilteredData);
-          break;
-        default:
-          analyticsResults[dimension] = { error: `Unsupported dimension: ${dimension}` };
-      }
+  // Process each requested dimension
+  for (const dimension of dimensions) {
+    switch (dimension) {
+      case 'types':
+        results.typeDistribution = analyzeTypeDistribution(data);
+        break;
+      case 'tags':
+        results.tagDistribution = analyzeTagDistribution(data);
+        break;
+      case 'quality':
+        results.qualityMetrics = analyzeQuality(data);
+        break;
+      case 'relationships':
+        results.relationshipMetrics = analyzeRelationships(data);
+        break;
+      case 'trends':
+        results.trends = analyzeTrends(data, { timeframe, startDate, endDate });
+        break;
+      case 'activity':
+        results.activityMetrics = analyzeActivity(data, { timeframe, startDate, endDate });
+        break;
+      case 'completeness':
+        results.completenessMetrics = analyzeCompleteness(data);
+        break;
+      case 'complexity':
+        results.complexityMetrics = analyzeComplexity(data);
+        break;
+      case 'artifacts':
+        results.artifacts = extractArtifacts(data, { limit });
+        break;
+      default:
+        // Unknown dimension - ignore
     }
-  }
-  
-  // Apply limit if specified
-  if (limit && typeof limit === 'number') {
-    applyResultLimit(analyticsResults, limit);
   }
   
   // Normalize results if requested
-  if (normalizeResults) {
-    normalizeAnalyticsResults(analyticsResults);
+  if (normalizeResults && results) {
+    normalizeAnalyticsResults(results);
   }
   
-  // Format output
-  return formatAnalyticsOutput(analyticsResults, outputFormat);
+  return results;
 }
 
 /**
- * Analyzes knowledge graph relationships
+ * Analyzes relationship graph data
  *
- * @param {Object} options - The analysis options
- * @param {Object} data - The data containing nodes and relationships
+ * @param {Object} options - Analysis options
+ * @param {Object} data - Graph data to analyze
  * @returns {Object} Relationship analysis results
  */
 function analyzeRelationshipGraph(options, data) {
-  const { 
-    centralNodeType, centralNodeId, depth = 1,
-    relationshipTypes = [], includeMetadata = false
+  const {
+    centralNodeType,
+    centralNodeId,
+    depth = 1,
+    includeMetadata = false
   } = options;
   
-  const { nodes, relationships } = data;
-  let graph = { nodes: [], edges: [], metrics: {} };
-  
-  // If central node is specified, build graph around it
-  if (centralNodeType && centralNodeId) {
-    const centralNode = findNodeByTypeAndId(nodes, centralNodeType, centralNodeId);
-    
-    if (!centralNode) {
-      return { error: `Central node not found: ${centralNodeType}:${centralNodeId}` };
+  // Initialize results
+  const results = {
+    timestamp: new Date().toISOString(),
+    options: { ...options },
+    graphMetrics: {
+      nodeCount: data.nodes?.length || 0,
+      relationshipCount: data.relationships?.length || 0,
+      density: calculateGraphDensity(data),
+      centralityScores: calculateCentralityScores(data),
+      communities: identifyCommunities(data),
+      isolatedNodes: findIsolatedNodes(data)
+    },
+    graph: {
+      nodes: processNodes(data.nodes, includeMetadata),
+      relationships: data.relationships
     }
-    
-    graph = buildGraphFromCentralNode(
-      nodes, 
-      relationships, 
-      centralNode, 
-      depth, 
-      relationshipTypes, 
-      includeMetadata
-    );
-  } else {
-    // Build complete graph with filtering
-    graph = buildCompleteGraph(nodes, relationships, relationshipTypes, includeMetadata);
+  };
+  
+  // Analyze specific central node if provided
+  if (centralNodeType && centralNodeId) {
+    results.centralNode = {
+      type: centralNodeType,
+      id: centralNodeId,
+      metrics: calculateNodeMetrics(centralNodeType, centralNodeId, data)
+    };
   }
   
-  // Calculate graph metrics
-  graph.metrics = calculateGraphMetrics(graph);
-  
-  // Identify influential nodes
-  graph.influentialNodes = identifyInfluentialNodes(graph);
-  
-  // Detect communities/clusters
-  graph.communities = detectCommunities(graph);
-  
-  return graph;
+  return results;
 }
 
 /**
- * Analyzes knowledge activity patterns
+ * Analyzes activity patterns in data
  *
- * @param {Object} options - The analysis options
- * @param {Object} data - The activity data to analyze
+ * @param {Object} options - Analysis options
+ * @param {Object} data - Activity data to analyze
  * @returns {Object} Activity analysis results
  */
 function analyzeActivityPatterns(options, data) {
   const {
-    timeframe, startDate, endDate,
-    activityTypes = [], artifactTypes = [],
-    groupBy = 'day', cumulative = false
+    timeframe,
+    startDate,
+    endDate,
+    groupBy = 'day',
+    cumulative = false
   } = options;
   
-  // Filter activities by time range
-  const timeFilteredActivities = filterActivitiesByTimeframe(
-    data, timeframe, startDate, endDate
-  );
-  
-  // Filter by activity types
-  const typeFilteredActivities = filterActivitiesByType(
-    timeFilteredActivities, activityTypes, artifactTypes
-  );
+  // Process date range
+  const { effectiveStartDate, effectiveEndDate } = processDateRange(timeframe, startDate, endDate);
   
   // Group activities
-  const groupedActivities = groupActivities(typeFilteredActivities, groupBy);
+  const groupedActivities = groupActivities(data, groupBy, effectiveStartDate, effectiveEndDate);
   
-  // Calculate cumulative values if requested
-  const processedActivities = cumulative
-    ? calculateCumulativeActivities(groupedActivities)
-    : groupedActivities;
+  // Calculate cumulative data if requested
+  const cumulativeData = cumulative ? calculateCumulativeActivity(groupedActivities) : null;
   
-  // Calculate activity metrics
-  const activityMetrics = {
-    totalActivities: countTotalActivities(typeFilteredActivities),
-    activityByType: countActivitiesByType(typeFilteredActivities),
-    activityByArtifactType: countActivitiesByArtifactType(typeFilteredActivities),
-    timeDistribution: processedActivities,
-    peakPeriods: identifyPeakActivityPeriods(processedActivities),
-    activityTrends: calculateActivityTrends(processedActivities),
-    activeDays: calculateActiveDays(processedActivities),
-    userActivity: calculateUserActivity(typeFilteredActivities)
+  // Calculate trends
+  const trends = calculateActivityTrends(groupedActivities);
+  
+  // Initialize results
+  const results = {
+    timestamp: new Date().toISOString(),
+    options: { ...options },
+    timeRange: {
+      start: effectiveStartDate.toISOString(),
+      end: effectiveEndDate.toISOString()
+    },
+    summary: {
+      totalActivities: data.length,
+      peakDay: findPeakActivity(groupedActivities),
+      averagePerDay: calculateAverageActivityPerDay(groupedActivities),
+      mostActiveType: findMostActiveType(groupedActivities),
+      mostActiveUser: findMostActiveUser(data)
+    },
+    trends,
+    groupedActivities,
+    ...(cumulative && { cumulativeActivities: cumulativeData })
   };
   
-  return activityMetrics;
+  return results;
 }
 
 /**
- * Analyzes knowledge artifact impact
+ * Analyzes the impact of a knowledge artifact
  *
- * @param {Object} options - The analysis options
- * @param {Object} data - The data containing artifacts and relationships
+ * @param {Object} options - Analysis options
+ * @param {Object} data - Impact data to analyze
  * @returns {Object} Impact analysis results
  */
 function analyzeKnowledgeImpact(options, data) {
   const {
-    artifactType, artifactId,
-    impactMetric = 'references', depth = 1,
+    artifactType,
+    artifactId,
+    impactMetric = 'references',
+    depth = 1,
     includeIndirect = true
   } = options;
   
-  // Find the target artifact
-  const targetArtifact = findArtifactByTypeAndId(data.artifacts, artifactType, artifactId);
+  // Extract the target artifact
+  const targetArtifact = findArtifact(data, artifactType, artifactId);
   
   if (!targetArtifact) {
-    return { error: `Artifact not found: ${artifactType}:${artifactId}` };
+    throw new Error(`Artifact not found: ${artifactType}:${artifactId}`);
   }
   
-  // Different analysis based on impact metric
-  let impactAnalysis = {};
+  // Calculate direct references
+  const directReferences = calculateDirectReferences(data, artifactType, artifactId);
   
-  switch (impactMetric) {
-    case 'references':
-      impactAnalysis = analyzeReferenceImpact(
-        data, targetArtifact, depth, includeIndirect
-      );
-      break;
-    case 'dependencies':
-      impactAnalysis = analyzeDependencyImpact(
-        data, targetArtifact, depth, includeIndirect
-      );
-      break;
-    case 'changes':
-      impactAnalysis = analyzeChangeImpact(
-        data, targetArtifact, depth, includeIndirect
-      );
-      break;
-    case 'quality':
-      impactAnalysis = analyzeQualityImpact(
-        data, targetArtifact, depth, includeIndirect
-      );
-      break;
-    case 'usage':
-      impactAnalysis = analyzeUsageImpact(
-        data, targetArtifact, depth, includeIndirect
-      );
-      break;
-    default:
-      impactAnalysis = { error: `Unsupported impact metric: ${impactMetric}` };
-  }
+  // Calculate indirect references if requested
+  const indirectReferences = includeIndirect
+    ? calculateIndirectReferences(data, artifactType, artifactId, depth)
+    : null;
   
-  // Add impact scores
-  impactAnalysis.impactScore = calculateImpactScore(impactAnalysis);
+  // Calculate impact metrics
+  const impactMetrics = calculateImpactMetrics(targetArtifact, directReferences, indirectReferences);
   
-  // Add impact visualization data
-  impactAnalysis.visualization = generateImpactVisualizationData(impactAnalysis);
+  // Calculate change propagation
+  const changePropagation = estimateChangePropagation(data, artifactType, artifactId);
   
-  return impactAnalysis;
+  // Initialize results
+  const results = {
+    timestamp: new Date().toISOString(),
+    options: { ...options },
+    artifact: {
+      type: artifactType,
+      id: artifactId,
+      metadata: targetArtifact
+    },
+    directReferences,
+    ...(includeIndirect && { indirectReferences }),
+    impactMetrics,
+    changePropagation,
+    summary: {
+      totalReferences: directReferences.count + (indirectReferences?.count || 0),
+      impactScore: impactMetrics.score,
+      keyAffectedArtifacts: impactMetrics.keyAffectedArtifacts,
+      propagationRisk: changePropagation.riskLevel
+    }
+  };
+  
+  return results;
 }
 
 /**
- * Creates or updates a dashboard configuration
+ * Configures an analytics dashboard
  *
- * @param {Object} options - The dashboard configuration options
- * @param {Object} existingDashboards - Existing dashboard configurations
- * @returns {Object} The created or updated dashboard configuration
+ * @param {Object} options - Dashboard configuration options
+ * @param {Array<Object>} existingDashboards - Existing dashboards
+ * @returns {Object} The configured dashboard
  */
 function configureDashboard(options, existingDashboards = []) {
   const {
-    dashboardId, name, widgets = [], layout = {},
+    dashboardId,
+    name,
+    widgets = [],
+    layout = {},
     isDefault = false
   } = options;
   
@@ -268,1520 +251,1825 @@ function configureDashboard(options, existingDashboards = []) {
     const existingDashboard = existingDashboards.find(d => d.id === dashboardId);
     
     if (!existingDashboard) {
-      return { error: `Dashboard not found: ${dashboardId}` };
+      throw new Error(`Dashboard not found with ID: ${dashboardId}`);
     }
     
-    // Update existing dashboard
-    const updatedDashboard = {
+    // Update the existing dashboard
+    return {
       ...existingDashboard,
       name: name || existingDashboard.name,
       widgets: widgets.length > 0 ? widgets : existingDashboard.widgets,
       layout: Object.keys(layout).length > 0 ? layout : existingDashboard.layout,
-      isDefault: isDefault,
-      lastUpdated: new Date().toISOString()
+      isDefault,
+      updatedAt: new Date().toISOString()
     };
-    
-    return updatedDashboard;
   }
   
   // Create a new dashboard
-  const newDashboard = {
-    id: generateDashboardId(),
+  if (!name) {
+    throw new Error('Name is required when creating a new dashboard');
+  }
+  
+  // Generate a unique ID
+  const newId = `dashboard_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  
+  // Create the dashboard
+  return {
+    id: newId,
     name,
     widgets,
     layout,
     isDefault,
-    created: new Date().toISOString(),
-    lastUpdated: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
-  
-  return newDashboard;
 }
 
 /**
  * Prepares analytics data for export
  *
- * @param {Object} options - The export options
- * @param {Object} analyticsData - The analytics data to export
- * @returns {Object} The export result with formatted data and metadata
+ * @param {Object} options - Export options
+ * @param {Object} data - Analytics data to export
+ * @returns {Object} Export result with formatted data and metadata
  */
-function prepareAnalyticsExport(options, analyticsData) {
+function prepareAnalyticsExport(options, data) {
   const {
-    format, destination, exportConfig = {}
+    format,
+    destination = 'file',
+    exportConfig = {}
   } = options;
   
-  // Format data according to selected format
+  // Format the data based on the requested format
   let formattedData;
+  let mimeType;
   
-  switch (format) {
+  switch (format.toLowerCase()) {
     case 'json':
-      formattedData = formatAsJSON(analyticsData, exportConfig);
+      formattedData = JSON.stringify(data, null, 2);
+      mimeType = 'application/json';
       break;
     case 'csv':
-      formattedData = formatAsCSV(analyticsData, exportConfig);
-      break;
-    case 'excel':
-      formattedData = formatAsExcel(analyticsData, exportConfig);
-      break;
-    case 'pdf':
-      formattedData = formatAsPDF(analyticsData, exportConfig);
+      formattedData = convertToCsv(data, exportConfig.csvOptions);
+      mimeType = 'text/csv';
       break;
     case 'html':
-      formattedData = formatAsHTML(analyticsData, exportConfig);
+      formattedData = convertToHtml(data, exportConfig.htmlOptions);
+      mimeType = 'text/html';
       break;
     case 'markdown':
-      formattedData = formatAsMarkdown(analyticsData, exportConfig);
+    case 'md':
+      formattedData = convertToMarkdown(data, exportConfig.markdownOptions);
+      mimeType = 'text/markdown';
       break;
     default:
-      return { error: `Unsupported export format: ${format}` };
+      throw new Error(`Unsupported export format: ${format}`);
   }
   
-  // Prepare export metadata
-  const exportMetadata = {
+  // Generate export metadata
+  const metadata = {
     timestamp: new Date().toISOString(),
     format,
-    contentType: getContentTypeForFormat(format),
-    originalQueryDetails: options.query,
-    dataPoints: countDataPoints(analyticsData),
     destination,
-    exportConfig
+    size: formattedData.length,
+    dataShape: {
+      dimensions: Object.keys(data).filter(key => key !== 'options' && key !== 'timestamp' && key !== 'query'),
+      recordCount: estimateRecordCount(data)
+    },
+    config: exportConfig
   };
   
+  // Return the result
   return {
     data: formattedData,
-    metadata: exportMetadata
+    metadata,
+    mimeType
   };
 }
 
-// Helper functions
+// Helper functions for analysis
 
-function filterDataByArtifactTypes(data, artifactTypes) {
-  if (!artifactTypes || artifactTypes.length === 0) {
-    // Return all data if no filtering
-    return data;
-  }
+function calculateCounts(data) {
+  const counts = {
+    total: 0
+  };
   
-  const result = {};
-  
-  for (const type of artifactTypes) {
-    if (data[type]) {
-      result[type] = data[type];
+  // Count by type
+  for (const [type, items] of Object.entries(data)) {
+    if (Array.isArray(items)) {
+      counts[type] = items.length;
+      counts.total += items.length;
     }
   }
   
-  return result;
-}
-
-function filterDataByTimeframe(data, timeframe, startDate, endDate) {
-  // If no timeframe specified, return all data
-  if (!timeframe) {
-    return data;
-  }
-  
-  let filterStartDate;
-  let filterEndDate = new Date();
-  
-  // Determine date range based on timeframe
-  if (timeframe === 'custom' && startDate && endDate) {
-    filterStartDate = new Date(startDate);
-    filterEndDate = new Date(endDate);
-  } else {
-    filterStartDate = calculateStartDateForTimeframe(timeframe);
-  }
-  
-  // Filter each data type
-  const result = {};
-  
-  for (const [type, items] of Object.entries(data)) {
-    result[type] = items.filter(item => {
-      const itemDate = new Date(item.timestamp || item.created || item.lastUpdated);
-      return itemDate >= filterStartDate && itemDate <= filterEndDate;
-    });
-  }
-  
-  return result;
-}
-
-function calculateStartDateForTimeframe(timeframe) {
-  const now = new Date();
-  
-  switch (timeframe) {
-    case 'day':
-      return new Date(now.setDate(now.getDate() - 1));
-    case 'week':
-      return new Date(now.setDate(now.getDate() - 7));
-    case 'month':
-      return new Date(now.setMonth(now.getMonth() - 1));
-    case 'quarter':
-      return new Date(now.setMonth(now.getMonth() - 3));
-    case 'year':
-      return new Date(now.setFullYear(now.getFullYear() - 1));
-    case 'all':
-      return new Date(0); // Beginning of time (1970-01-01)
-    default:
-      return new Date(now.setMonth(now.getMonth() - 1)); // Default to 1 month
-  }
-}
-
-function applyFilters(data, filters) {
-  if (!filters || Object.keys(filters).length === 0) {
-    return data;
-  }
-  
-  const result = {};
-  
-  for (const [type, items] of Object.entries(data)) {
-    result[type] = items.filter(item => {
-      // Apply each filter
-      for (const [filterKey, filterValue] of Object.entries(filters)) {
-        // Handle nested properties with dot notation
-        if (filterKey.includes('.')) {
-          const keyParts = filterKey.split('.');
-          let itemValue = item;
-          
-          for (const part of keyParts) {
-            if (itemValue === null || itemValue === undefined) {
-              return false;
-            }
-            itemValue = itemValue[part];
-          }
-          
-          if (!matchesFilter(itemValue, filterValue)) {
-            return false;
-          }
-        } else {
-          if (!matchesFilter(item[filterKey], filterValue)) {
-            return false;
-          }
-        }
-      }
-      
-      return true;
-    });
-  }
-  
-  return result;
-}
-
-function matchesFilter(value, filter) {
-  // If filter is an array, check if value is in the array
-  if (Array.isArray(filter)) {
-    return filter.includes(value);
-  }
-  
-  // If filter is an object with operator and value
-  if (filter && typeof filter === 'object' && filter.operator && filter.value !== undefined) {
-    switch (filter.operator) {
-      case 'eq':
-        return value === filter.value;
-      case 'neq':
-        return value !== filter.value;
-      case 'gt':
-        return value > filter.value;
-      case 'gte':
-        return value >= filter.value;
-      case 'lt':
-        return value < filter.value;
-      case 'lte':
-        return value <= filter.value;
-      case 'contains':
-        return String(value).includes(String(filter.value));
-      case 'starts':
-        return String(value).startsWith(String(filter.value));
-      case 'ends':
-        return String(value).endsWith(String(filter.value));
-      default:
-        return false;
-    }
-  }
-  
-  // Simple equality check
-  return value === filter;
-}
-
-function countArtifacts(data) {
-  const counts = {};
-  let total = 0;
-  
-  for (const [type, items] of Object.entries(data)) {
-    counts[type] = items.length;
-    total += items.length;
-  }
-  
-  return { byType: counts, total };
+  return counts;
 }
 
 function analyzeTypeDistribution(data) {
-  const counts = countArtifacts(data);
-  const distribution = {};
+  const distribution = {
+    types: [],
+    typeCount: 0
+  };
   
-  for (const [type, count] of Object.entries(counts.byType)) {
-    distribution[type] = {
-      count,
-      percentage: counts.total > 0 ? (count / counts.total * 100) : 0
-    };
-  }
-  
-  return distribution;
-}
-
-function analyzeTimeDistribution(data, timeframe) {
-  const timeUnits = determineTimeUnitsForTimeframe(timeframe);
-  const distribution = initializeTimeDistribution(timeUnits);
-  
-  // Process each data item
+  // Analyze each type
   for (const [type, items] of Object.entries(data)) {
-    for (const item of items) {
-      const itemDate = new Date(item.timestamp || item.created || item.lastUpdated);
-      const timeKey = formatDateForTimeUnit(itemDate, timeUnits);
-      
-      if (!distribution.byTime[timeKey]) {
-        distribution.byTime[timeKey] = { total: 0 };
-      }
-      
-      if (!distribution.byTime[timeKey][type]) {
-        distribution.byTime[timeKey][type] = 0;
-      }
-      
-      distribution.byTime[timeKey][type]++;
-      distribution.byTime[timeKey].total++;
+    if (Array.isArray(items) && items.length > 0) {
+      distribution.types.push({
+        type,
+        count: items.length,
+        percentage: 0 // Will be calculated after all counts
+      });
+      distribution.typeCount++;
     }
   }
   
-  // Calculate trends
-  distribution.trends = calculateTimeDistributionTrends(distribution.byTime, timeUnits);
+  // Calculate percentages
+  const total = distribution.types.reduce((sum, type) => sum + type.count, 0);
+  for (const type of distribution.types) {
+    type.percentage = total > 0 ? (type.count / total * 100).toFixed(2) : 0;
+  }
+  
+  // Sort by count (descending)
+  distribution.types.sort((a, b) => b.count - a.count);
   
   return distribution;
-}
-
-function determineTimeUnitsForTimeframe(timeframe) {
-  switch (timeframe) {
-    case 'day':
-      return 'hour';
-    case 'week':
-      return 'day';
-    case 'month':
-      return 'day';
-    case 'quarter':
-      return 'week';
-    case 'year':
-      return 'month';
-    case 'all':
-      return 'month';
-    case 'custom':
-      // For custom timeframes, determine based on the range
-      // This would need the actual date range to be implemented properly
-      return 'day';
-    default:
-      return 'day';
-  }
-}
-
-function initializeTimeDistribution(timeUnits) {
-  return {
-    timeUnit: timeUnits,
-    byTime: {},
-    trends: {}
-  };
-}
-
-function formatDateForTimeUnit(date, timeUnit) {
-  switch (timeUnit) {
-    case 'hour':
-      return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())} ${padNumber(date.getHours())}:00`;
-    case 'day':
-      return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
-    case 'week':
-      const weekNumber = getWeekNumber(date);
-      return `${date.getFullYear()}-W${padNumber(weekNumber)}`;
-    case 'month':
-      return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}`;
-    case 'year':
-      return `${date.getFullYear()}`;
-    default:
-      return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
-  }
-}
-
-function padNumber(num) {
-  return num.toString().padStart(2, '0');
-}
-
-function getWeekNumber(date) {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return weekNumber;
 }
 
 function analyzeTagDistribution(data) {
-  const tagCount = {};
-  let totalTaggedItems = 0;
+  const tagMap = new Map();
+  let artifactsWithTags = 0;
+  let totalArtifacts = 0;
   
-  // Count occurrences of each tag
+  // Collect tags from all artifacts
   for (const [type, items] of Object.entries(data)) {
-    for (const item of items) {
-      if (item.tags && Array.isArray(item.tags)) {
-        totalTaggedItems++;
-        
-        for (const tag of item.tags) {
-          if (!tagCount[tag]) {
-            tagCount[tag] = { count: 0, byType: {} };
+    if (Array.isArray(items)) {
+      totalArtifacts += items.length;
+      
+      for (const item of items) {
+        if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
+          artifactsWithTags++;
+          
+          for (const tag of item.tags) {
+            if (tagMap.has(tag)) {
+              tagMap.set(tag, tagMap.get(tag) + 1);
+            } else {
+              tagMap.set(tag, 1);
+            }
           }
-          
-          tagCount[tag].count++;
-          
-          if (!tagCount[tag].byType[type]) {
-            tagCount[tag].byType[type] = 0;
-          }
-          
-          tagCount[tag].byType[type]++;
         }
       }
     }
   }
   
-  // Calculate percentages and sort by frequency
-  const tagStats = Object.entries(tagCount).map(([tag, stats]) => ({
+  // Convert to array and sort
+  const tags = Array.from(tagMap.entries()).map(([tag, count]) => ({
     tag,
-    count: stats.count,
-    percentage: totalTaggedItems > 0 ? (stats.count / totalTaggedItems * 100) : 0,
-    byType: stats.byType
-  })).sort((a, b) => b.count - a.count);
+    count,
+    percentage: totalArtifacts > 0 ? (count / totalArtifacts * 100).toFixed(2) : 0
+  }));
+  
+  // Sort by count (descending)
+  tags.sort((a, b) => b.count - a.count);
   
   return {
-    tags: tagStats,
-    totalTaggedItems,
-    uniqueTagCount: Object.keys(tagCount).length
+    tags,
+    tagCount: tagMap.size,
+    artifactsWithTags,
+    percentageWithTags: totalArtifacts > 0 ? (artifactsWithTags / totalArtifacts * 100).toFixed(2) : 0
   };
-}
-
-function analyzeComplexity(data) {
-  const complexityMetrics = {
-    byType: {},
-    average: 0,
-    distribution: {
-      low: 0,
-      medium: 0,
-      high: 0,
-      veryHigh: 0
-    }
-  };
-  
-  let totalItems = 0;
-  let complexitySum = 0;
-  
-  for (const [type, items] of Object.entries(data)) {
-    complexityMetrics.byType[type] = {
-      average: 0,
-      items: []
-    };
-    
-    let typeSum = 0;
-    
-    for (const item of items) {
-      const complexity = calculateItemComplexity(item, type);
-      
-      complexityMetrics.byType[type].items.push({
-        id: item.id,
-        complexity
-      });
-      
-      typeSum += complexity;
-      complexitySum += complexity;
-      totalItems++;
-      
-      // Update distribution
-      if (complexity < 25) {
-        complexityMetrics.distribution.low++;
-      } else if (complexity < 50) {
-        complexityMetrics.distribution.medium++;
-      } else if (complexity < 75) {
-        complexityMetrics.distribution.high++;
-      } else {
-        complexityMetrics.distribution.veryHigh++;
-      }
-    }
-    
-    complexityMetrics.byType[type].average = items.length > 0
-      ? typeSum / items.length
-      : 0;
-  }
-  
-  complexityMetrics.average = totalItems > 0
-    ? complexitySum / totalItems
-    : 0;
-  
-  return complexityMetrics;
-}
-
-function calculateItemComplexity(item, type) {
-  // Simple complexity calculation - this would be more sophisticated in a real implementation
-  let complexity = 0;
-  
-  // Base complexity
-  switch (type) {
-    case 'decision':
-      complexity += 30; // Decisions have inherent complexity
-      break;
-    case 'system_pattern':
-      complexity += 40; // System patterns are typically more complex
-      break;
-    case 'custom_data':
-      complexity += 20; // Custom data varies widely
-      break;
-    default:
-      complexity += 10; // Default base complexity
-  }
-  
-  // Add complexity based on content length
-  if (item.description) {
-    complexity += Math.min(20, item.description.length / 50);
-  }
-  
-  if (item.rationale) {
-    complexity += Math.min(15, item.rationale.length / 50);
-  }
-  
-  // Add complexity based on relationships
-  if (item.relationships && Array.isArray(item.relationships)) {
-    complexity += item.relationships.length * 5;
-  }
-  
-  // Add complexity based on implementation details
-  if (item.implementation_details) {
-    complexity += Math.min(25, item.implementation_details.length / 50);
-  }
-  
-  // Add complexity based on metadata
-  if (item.metadata && typeof item.metadata === 'object') {
-    complexity += Object.keys(item.metadata).length * 2;
-  }
-  
-  // Cap at 100
-  return Math.min(100, complexity);
 }
 
 function analyzeQuality(data) {
-  const qualityMetrics = {
-    byType: {},
-    average: 0,
-    distribution: {
-      low: 0,
-      medium: 0,
-      high: 0,
-      veryHigh: 0
-    }
-  };
+  const qualityScores = [];
+  const typeScores = {};
   
-  let totalItems = 0;
-  let qualitySum = 0;
-  
+  // Calculate quality scores for each artifact
   for (const [type, items] of Object.entries(data)) {
-    qualityMetrics.byType[type] = {
-      average: 0,
-      dimensions: {
-        completeness: 0,
-        accuracy: 0,
-        clarity: 0,
-        consistency: 0
-      },
-      items: []
-    };
-    
-    let typeSum = 0;
-    let completenesSum = 0;
-    let accuracySum = 0;
-    let claritySum = 0;
-    let consistencySum = 0;
-    
-    for (const item of items) {
-      const quality = calculateItemQuality(item, type);
-      
-      qualityMetrics.byType[type].items.push({
-        id: item.id,
-        quality: quality.overall,
-        dimensions: quality.dimensions
-      });
-      
-      typeSum += quality.overall;
-      qualitySum += quality.overall;
-      
-      completenesSum += quality.dimensions.completeness;
-      accuracySum += quality.dimensions.accuracy;
-      claritySum += quality.dimensions.clarity;
-      consistencySum += quality.dimensions.consistency;
-      
-      totalItems++;
-      
-      // Update distribution
-      if (quality.overall < 25) {
-        qualityMetrics.distribution.low++;
-      } else if (quality.overall < 50) {
-        qualityMetrics.distribution.medium++;
-      } else if (quality.overall < 75) {
-        qualityMetrics.distribution.high++;
-      } else {
-        qualityMetrics.distribution.veryHigh++;
-      }
-    }
-    
-    if (items.length > 0) {
-      qualityMetrics.byType[type].average = typeSum / items.length;
-      qualityMetrics.byType[type].dimensions = {
-        completeness: completenesSum / items.length,
-        accuracy: accuracySum / items.length,
-        clarity: claritySum / items.length,
-        consistency: consistencySum / items.length
+    if (Array.isArray(items)) {
+      typeScores[type] = {
+        scores: [],
+        average: 0,
+        min: 100,
+        max: 0
       };
+      
+      for (const item of items) {
+        const score = calculateQualityScore(item, type);
+        qualityScores.push(score);
+        typeScores[type].scores.push(score);
+        
+        typeScores[type].min = Math.min(typeScores[type].min, score);
+        typeScores[type].max = Math.max(typeScores[type].max, score);
+      }
+      
+      // Calculate average for this type
+      typeScores[type].average = typeScores[type].scores.length > 0
+        ? (typeScores[type].scores.reduce((sum, score) => sum + score, 0) / typeScores[type].scores.length).toFixed(2)
+        : 0;
     }
   }
   
-  qualityMetrics.average = totalItems > 0
-    ? qualitySum / totalItems
+  // Calculate overall metrics
+  const average = qualityScores.length > 0
+    ? (qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length).toFixed(2)
     : 0;
   
-  return qualityMetrics;
-}
-
-function calculateItemQuality(item, type) {
-  // This would be a more sophisticated algorithm in a real implementation
-  const quality = {
-    dimensions: {
-      completeness: calculateCompleteness(item, type),
-      accuracy: calculateAccuracy(item, type),
-      clarity: calculateClarity(item, type),
-      consistency: calculateConsistency(item, type)
-    }
+  const min = qualityScores.length > 0
+    ? Math.min(...qualityScores)
+    : 0;
+  
+  const max = qualityScores.length > 0
+    ? Math.max(...qualityScores)
+    : 0;
+  
+  return {
+    average,
+    min,
+    max,
+    byType: typeScores,
+    distribution: calculateDistribution(qualityScores, 10) // 10 buckets
   };
-  
-  // Overall quality is weighted average of dimensions
-  quality.overall = (
-    quality.dimensions.completeness * 0.3 +
-    quality.dimensions.accuracy * 0.3 +
-    quality.dimensions.clarity * 0.2 +
-    quality.dimensions.consistency * 0.2
-  );
-  
-  return quality;
 }
 
-function calculateCompleteness(item, type) {
-  // Simple completeness calculation based on required fields
-  let score = 0;
-  let requiredFields = [];
+function calculateQualityScore(artifact, type) {
+  // This would be a more sophisticated algorithm in a real implementation
+  // For now, we'll use a simple scoring system
+  
+  let score = 50; // Base score
   
   switch (type) {
     case 'decision':
-      requiredFields = ['summary', 'rationale'];
+      // Score based on decision fields
+      if (artifact.summary && artifact.summary.length > 10) score += 10;
+      if (artifact.rationale && artifact.rationale.length > 20) score += 15;
+      if (artifact.implementation_details && artifact.implementation_details.length > 20) score += 15;
+      if (artifact.tags && artifact.tags.length > 0) score += 10;
       break;
+      
     case 'system_pattern':
-      requiredFields = ['name', 'description'];
+      // Score based on pattern fields
+      if (artifact.name && artifact.name.length > 5) score += 10;
+      if (artifact.description && artifact.description.length > 30) score += 20;
+      if (artifact.tags && artifact.tags.length > 0) score += 10;
+      if (artifact.examples) score += 10;
       break;
+      
     case 'progress':
-      requiredFields = ['description', 'status'];
+      // Score based on progress fields
+      if (artifact.description && artifact.description.length > 10) score += 15;
+      if (artifact.status) score += 15;
+      if (artifact.linked_item_type && artifact.linked_item_id) score += 20;
       break;
-    default:
-      requiredFields = ['key', 'value'];
+      
+    case 'custom_data':
+      // Score based on custom data
+      if (artifact.value && typeof artifact.value === 'object') {
+        const valueSize = JSON.stringify(artifact.value).length;
+        score += Math.min(40, valueSize / 100); // Up to 40 points based on value size
+      } else if (artifact.value) {
+        score += 20;
+      }
+      break;
   }
   
-  const presentFields = requiredFields.filter(field => 
-    item[field] !== undefined && item[field] !== null && item[field] !== ''
-  );
-  
-  score = (presentFields.length / requiredFields.length) * 100;
-  
-  // Bonus points for additional useful fields
-  if (item.tags && item.tags.length > 0) score += 10;
-  if (item.metadata) score += 10;
-  if (item.implementation_details) score += 15;
-  
+  // Cap at 100
   return Math.min(100, score);
-}
-
-function calculateAccuracy(item) {
-  // This would require domain knowledge or external verification
-  // Simplified implementation focuses on metadata indicating verification
-  let score = 70; // Default baseline
-  
-  if (item.metadata && item.metadata.verified) {
-    score += 20;
-  }
-  
-  if (item.metadata && item.metadata.verified_by) {
-    score += 10;
-  }
-  
-  if (item.metadata && item.metadata.quality_score) {
-    score = (score + Number(item.metadata.quality_score)) / 2;
-  }
-  
-  return Math.min(100, score);
-}
-
-function calculateClarity(item) {
-  // Simple clarity metrics based on text
-  let score = 70; // Default baseline
-  
-  // Check for presence of description or rationale
-  if (item.description && typeof item.description === 'string') {
-    // Length-based heuristic - neither too short nor too long
-    const length = item.description.length;
-    
-    if (length < 10) {
-      score -= 20; // Too short
-    } else if (length > 1000) {
-      score -= 10; // Potentially too long
-    } else if (length > 50 && length < 500) {
-      score += 10; // Good length
-    }
-  } else {
-    score -= 30; // No description
-  }
-  
-  // Check for presence of well-structured content
-  if (item.description && item.description.includes('\n\n')) {
-    score += 10; // Has paragraphs
-  }
-  
-  // Check for structured content with lists
-  if (item.description && (
-    item.description.includes('- ') || 
-    item.description.includes('* ') || 
-    item.description.includes('1. ')
-  )) {
-    score += 10; // Has lists
-  }
-  
-  return Math.min(100, Math.max(0, score));
-}
-
-function calculateConsistency(item, type) {
-  // Without comparing to other items, this is a simplification
-  let score = 80; // Default baseline
-  
-  // Check metadata structure consistency
-  if (item.metadata && typeof item.metadata !== 'object') {
-    score -= 30;
-  }
-  
-  // Check tag format consistency
-  if (item.tags) {
-    if (!Array.isArray(item.tags)) {
-      score -= 30;
-    } else {
-      for (const tag of item.tags) {
-        if (typeof tag !== 'string') {
-          score -= 10;
-        }
-      }
-    }
-  }
-  
-  // Type-specific checks
-  switch (type) {
-    case 'decision':
-      if (item.status && !['proposed', 'accepted', 'rejected', 'superseded'].includes(item.status)) {
-        score -= 20; // Inconsistent status value
-      }
-      break;
-    case 'progress':
-      if (item.status && !['TODO', 'IN_PROGRESS', 'DONE', 'BLOCKED'].includes(item.status)) {
-        score -= 20; // Inconsistent status value
-      }
-      break;
-  }
-  
-  return Math.min(100, Math.max(0, score));
 }
 
 function analyzeRelationships(data) {
-  // This requires the relationship data which would typically come from ConPort
-  // Simplified implementation with placeholder metrics
-  const relationshipMetrics = {
+  // This function analyzes the relationship structure in the data
+  // but doesn't do the detailed graph analysis that's in analyzeRelationshipGraph
+  
+  const metrics = {
     totalRelationships: 0,
     byType: {},
-    centralNodes: [],
-    density: 0,
-    clusters: []
+    byArtifactType: {},
+    orphanedArtifacts: 0,
+    highlyConnectedArtifacts: []
   };
   
-  // In a real implementation, this would analyze the relationship graph
-  // For now, we'll return placeholder metrics
-  relationshipMetrics.totalRelationships = countRelationships(data);
+  // Check if relationships data is available
+  if (!data.relationships) {
+    return metrics;
+  }
   
-  return relationshipMetrics;
-}
-
-function countRelationships(data) {
-  // Simplified implementation - in reality would count actual relationships
-  let count = 0;
+  // Count total relationships
+  metrics.totalRelationships = data.relationships.length;
   
+  // Count by relationship type
+  for (const relationship of data.relationships) {
+    const relType = relationship.type || 'unknown';
+    
+    if (!metrics.byType[relType]) {
+      metrics.byType[relType] = 0;
+    }
+    
+    metrics.byType[relType]++;
+    
+    // Count by artifact type
+    const sourceType = relationship.source.type;
+    const targetType = relationship.target.type;
+    
+    if (!metrics.byArtifactType[sourceType]) {
+      metrics.byArtifactType[sourceType] = { outgoing: 0, incoming: 0 };
+    }
+    
+    if (!metrics.byArtifactType[targetType]) {
+      metrics.byArtifactType[targetType] = { outgoing: 0, incoming: 0 };
+    }
+    
+    metrics.byArtifactType[sourceType].outgoing++;
+    metrics.byArtifactType[targetType].incoming++;
+  }
+  
+  // Find orphaned artifacts
   for (const [type, items] of Object.entries(data)) {
-    for (const item of items) {
-      if (item.relationships && Array.isArray(item.relationships)) {
-        count += item.relationships.length;
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        const itemId = String(item.id);
+        
+        // Check if this item is in any relationship
+        const isInRelationship = data.relationships.some(rel => 
+          (rel.source.type === type && rel.source.id === itemId) ||
+          (rel.target.type === type && rel.target.id === itemId)
+        );
+        
+        if (!isInRelationship) {
+          metrics.orphanedArtifacts++;
+        }
       }
     }
   }
   
-  return count;
+  // Find highly connected artifacts
+  const connectionCounts = new Map();
+  
+  for (const relationship of data.relationships) {
+    const sourceKey = `${relationship.source.type}:${relationship.source.id}`;
+    const targetKey = `${relationship.target.type}:${relationship.target.id}`;
+    
+    connectionCounts.set(sourceKey, (connectionCounts.get(sourceKey) || 0) + 1);
+    connectionCounts.set(targetKey, (connectionCounts.get(targetKey) || 0) + 1);
+  }
+  
+  // Get top 5 most connected artifacts
+  metrics.highlyConnectedArtifacts = Array.from(connectionCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([key, count]) => {
+      const [type, id] = key.split(':');
+      return { type, id, connectionCount: count };
+    });
+  
+  return metrics;
 }
 
-function analyzeActivity(data) {
-  // This requires historical activity data which would typically come from ConPort
-  // Simplified implementation with placeholder metrics
-  const activityMetrics = {
-    totalActivities: 0,
-    byType: {},
-    recentActivity: [],
-    activeUsers: [],
-    activePeriods: []
+function analyzeTrends(data, { timeframe, startDate, endDate }) {
+  // Process date range
+  const { effectiveStartDate, effectiveEndDate } = processDateRange(timeframe, startDate, endDate);
+  
+  // Initialize results
+  const results = {
+    timeRange: {
+      start: effectiveStartDate.toISOString(),
+      end: effectiveEndDate.toISOString()
+    },
+    trends: {
+      overall: { direction: 'stable', change: '0%' },
+      byType: {}
+    },
+    timeSeries: {}
   };
   
-  // In a real implementation, this would analyze the activity logs
-  // For now, we'll return placeholder metrics
-  activityMetrics.totalActivities = countActivities(data);
+  // This would be more sophisticated in a real implementation
+  // For now, we'll generate some basic trend data
   
-  return activityMetrics;
-}
-
-function countActivities(data) {
-  // Simplified implementation - in reality would count actual activities
-  let count = 0;
+  // Helper to generate a fake time series
+  const generateTimeSeries = (type, count) => {
+    const series = [];
+    const days = Math.ceil((effectiveEndDate - effectiveStartDate) / (1000 * 60 * 60 * 24));
+    
+    // Base value with some randomness
+    let value = count * 0.7 + Math.random() * count * 0.3;
+    
+    for (let i = 0; i < days; i++) {
+      const date = new Date(effectiveStartDate);
+      date.setDate(date.getDate() + i);
+      
+      // Add some random variation
+      const change = (Math.random() - 0.3) * 0.1 * value;
+      value += change;
+      
+      series.push({
+        date: date.toISOString().split('T')[0],
+        value: Math.max(0, Math.round(value))
+      });
+    }
+    
+    return series;
+  };
+  
+  // Generate overall time series and trends
+  let totalCount = 0;
   
   for (const [type, items] of Object.entries(data)) {
-    count += items.length;
+    if (Array.isArray(items)) {
+      totalCount += items.length;
+      
+      // Generate time series for this type
+      results.timeSeries[type] = generateTimeSeries(type, items.length);
+      
+      // Calculate trend for this type
+      const firstValue = results.timeSeries[type][0]?.value || 0;
+      const lastValue = results.timeSeries[type][results.timeSeries[type].length - 1]?.value || 0;
+      const change = firstValue > 0 ? (lastValue - firstValue) / firstValue : 0;
+      
+      results.trends.byType[type] = {
+        direction: change > 0.05 ? 'increasing' : change < -0.05 ? 'decreasing' : 'stable',
+        change: `${(change * 100).toFixed(1)}%`
+      };
+    }
   }
   
-  return count;
-}
-
-function analyzeTrends(data, timeframe) {
-  const timeDistribution = analyzeTimeDistribution(data, timeframe);
-  const trends = calculateTimeDistributionTrends(timeDistribution.byTime, timeDistribution.timeUnit);
-  
-  return {
-    timeDistribution,
-    trends,
-    predictions: generatePredictions(trends)
-  };
-}
-
-function calculateTimeDistributionTrends(distributionByTime, timeUnit) {
-  const trends = {
-    overall: {
-      direction: 'stable',
-      change: 0,
-      percentChange: 0
-    },
-    byType: {}
-  };
-  
-  // Sort time keys chronologically
-  const sortedTimeKeys = Object.keys(distributionByTime).sort();
-  
-  if (sortedTimeKeys.length < 2) {
-    return trends;
-  }
+  // Generate overall time series
+  results.timeSeries.overall = generateTimeSeries('overall', totalCount);
   
   // Calculate overall trend
-  const firstPeriod = distributionByTime[sortedTimeKeys[0]];
-  const lastPeriod = distributionByTime[sortedTimeKeys[sortedTimeKeys.length - 1]];
+  const firstValue = results.timeSeries.overall[0]?.value || 0;
+  const lastValue = results.timeSeries.overall[results.timeSeries.overall.length - 1]?.value || 0;
+  const change = firstValue > 0 ? (lastValue - firstValue) / firstValue : 0;
   
-  const firstCount = firstPeriod.total;
-  const lastCount = lastPeriod.total;
-  
-  trends.overall.change = lastCount - firstCount;
-  trends.overall.percentChange = firstCount > 0
-    ? (trends.overall.change / firstCount * 100)
-    : 0;
-    
-  if (trends.overall.change > 0) {
-    trends.overall.direction = 'increasing';
-  } else if (trends.overall.change < 0) {
-    trends.overall.direction = 'decreasing';
-  } else {
-    trends.overall.direction = 'stable';
-  }
-  
-  // Calculate trends by type
-  const types = new Set();
-  
-  for (const timeKey of sortedTimeKeys) {
-    const periodData = distributionByTime[timeKey];
-    
-    for (const type in periodData) {
-      if (type !== 'total') {
-        types.add(type);
-      }
-    }
-  }
-  
-  for (const type of types) {
-    let firstTypeCount = 0;
-    let lastTypeCount = 0;
-    
-    if (firstPeriod[type]) {
-      firstTypeCount = firstPeriod[type];
-    }
-    
-    if (lastPeriod[type]) {
-      lastTypeCount = lastPeriod[type];
-    }
-    
-    const change = lastTypeCount - firstTypeCount;
-    const percentChange = firstTypeCount > 0
-      ? (change / firstTypeCount * 100)
-      : 0;
-      
-    let direction = 'stable';
-    if (change > 0) {
-      direction = 'increasing';
-    } else if (change < 0) {
-      direction = 'decreasing';
-    }
-    
-    trends.byType[type] = {
-      direction,
-      change,
-      percentChange
-    };
-  }
-  
-  return trends;
-}
-
-function generatePredictions(trends) {
-  // Simple prediction based on trends
-  const predictions = {
-    overall: {
-      nextPeriod: 0,
-      confidence: 'medium'
-    },
-    byType: {}
+  results.trends.overall = {
+    direction: change > 0.05 ? 'increasing' : change < -0.05 ? 'decreasing' : 'stable',
+    change: `${(change * 100).toFixed(1)}%`
   };
-  
-  // In a real implementation, this would use more sophisticated forecasting
-  // For now, just a placeholder implementation
-  
-  return predictions;
-}
-
-function generateSummary(data) {
-  const countResult = countArtifacts(data);
-  
-  return {
-    totalArtifacts: countResult.total,
-    typeBreakdown: countResult.byType,
-    mostRecent: findMostRecentArtifacts(data),
-    keyMetrics: {
-      complexityAvg: calculateAverageComplexity(data),
-      qualityAvg: calculateAverageQuality(data),
-      connectivityAvg: calculateAverageConnectivity(data)
-    }
-  };
-}
-
-function findMostRecentArtifacts(data) {
-  const recent = {};
-  
-  for (const [type, items] of Object.entries(data)) {
-    if (items.length > 0) {
-      // Sort by timestamp (descending)
-      const sorted = [...items].sort((a, b) => {
-        const dateA = new Date(a.timestamp || a.created || a.lastUpdated);
-        const dateB = new Date(b.timestamp || b.created || b.lastUpdated);
-        return dateB - dateA;
-      });
-      
-      recent[type] = sorted.slice(0, 3).map(item => ({
-        id: item.id,
-        title: item.title || item.name || item.summary || item.key,
-        timestamp: item.timestamp || item.created || item.lastUpdated
-      }));
-    }
-  }
-  
-  return recent;
-}
-
-function calculateAverageComplexity(data) {
-  // Simplified implementation
-  return analyzeComplexity(data).average;
-}
-
-function calculateAverageQuality(data) {
-  // Simplified implementation
-  return analyzeQuality(data).average;
-}
-
-function calculateAverageConnectivity(data) {
-  // Simplified implementation - placeholder
-  return 50; // Default value
-}
-
-function applyResultLimit(results, limit) {
-  // Apply limit to various result types
-  for (const key in results) {
-    if (Array.isArray(results[key])) {
-      results[key] = results[key].slice(0, limit);
-    } else if (results[key] && typeof results[key] === 'object' && results[key].items) {
-      results[key].items = results[key].items.slice(0, limit);
-    }
-  }
   
   return results;
 }
 
-function normalizeAnalyticsResults(results) {
-  // Normalize scores to 0-100 range
-  // This is a simplified implementation
-  for (const key in results) {
-    if (results[key] && typeof results[key] === 'object') {
-      if (results[key].score !== undefined) {
-        results[key].normalizedScore = (results[key].score / results[key].maxScore) * 100;
-      }
+function analyzeActivity(data, { timeframe, startDate, endDate }) {
+  // Process date range
+  const { effectiveStartDate, effectiveEndDate } = processDateRange(timeframe, startDate, endDate);
+  
+  // Filter activities within the date range
+  const activitiesInRange = data.filter(activity => {
+    const activityDate = new Date(activity.timestamp);
+    return activityDate >= effectiveStartDate && activityDate <= effectiveEndDate;
+  });
+  
+  // Group by day
+  const byDay = new Map();
+  
+  for (const activity of activitiesInRange) {
+    const date = activity.timestamp.split('T')[0];
+    
+    if (!byDay.has(date)) {
+      byDay.set(date, []);
+    }
+    
+    byDay.get(date).push(activity);
+  }
+  
+  // Group by type
+  const byType = new Map();
+  
+  for (const activity of activitiesInRange) {
+    const type = activity.artifactType;
+    
+    if (!byType.has(type)) {
+      byType.set(type, []);
+    }
+    
+    byType.get(type).push(activity);
+  }
+  
+  // Group by user
+  const byUser = new Map();
+  
+  for (const activity of activitiesInRange) {
+    const user = activity.userId || 'unknown';
+    
+    if (!byUser.has(user)) {
+      byUser.set(user, []);
+    }
+    
+    byUser.get(user).push(activity);
+  }
+  
+  // Calculate activity metrics
+  return {
+    totalActivities: activitiesInRange.length,
+    timeRange: {
+      start: effectiveStartDate.toISOString(),
+      end: effectiveEndDate.toISOString()
+    },
+    byDay: Array.from(byDay.entries()).map(([date, activities]) => ({
+      date,
+      count: activities.length,
+      activities: activities.map(a => ({ type: a.type, artifactType: a.artifactType, artifactId: a.artifactId }))
+    })),
+    byType: Array.from(byType.entries()).map(([type, activities]) => ({
+      type,
+      count: activities.length,
+      percentage: activitiesInRange.length > 0 ? (activities.length / activitiesInRange.length * 100).toFixed(2) : 0
+    })),
+    byUser: Array.from(byUser.entries()).map(([user, activities]) => ({
+      user,
+      count: activities.length,
+      percentage: activitiesInRange.length > 0 ? (activities.length / activitiesInRange.length * 100).toFixed(2) : 0
+    })),
+    mostActiveDay: Array.from(byDay.entries())
+      .sort((a, b) => b[1].length - a[1].length)[0]?.[0] || null,
+    mostActiveType: Array.from(byType.entries())
+      .sort((a, b) => b[1].length - a[1].length)[0]?.[0] || null,
+    mostActiveUser: Array.from(byUser.entries())
+      .sort((a, b) => b[1].length - a[1].length)[0]?.[0] || null
+  };
+}
+
+function analyzeCompleteness(data) {
+  const completenessScores = [];
+  const typeScores = {};
+  
+  // Calculate completeness scores for each artifact
+  for (const [type, items] of Object.entries(data)) {
+    if (Array.isArray(items)) {
+      typeScores[type] = {
+        scores: [],
+        average: 0,
+        min: 100,
+        max: 0,
+        incompleteCount: 0
+      };
       
-      if (results[key].items) {
-        for (const item of results[key].items) {
-          if (item.score !== undefined) {
-            item.normalizedScore = (item.score / results[key].maxScore) * 100;
-          }
+      for (const item of items) {
+        const score = calculateCompletenessScore(item, type);
+        completenessScores.push(score);
+        typeScores[type].scores.push(score);
+        
+        typeScores[type].min = Math.min(typeScores[type].min, score);
+        typeScores[type].max = Math.max(typeScores[type].max, score);
+        
+        if (score < 80) {
+          typeScores[type].incompleteCount++;
         }
       }
       
-      // Recursively normalize nested objects
-      normalizeAnalyticsResults(results[key]);
+      // Calculate average for this type
+      typeScores[type].average = typeScores[type].scores.length > 0
+        ? (typeScores[type].scores.reduce((sum, score) => sum + score, 0) / typeScores[type].scores.length).toFixed(2)
+        : 0;
     }
   }
   
-  return results;
+  // Calculate overall metrics
+  const average = completenessScores.length > 0
+    ? (completenessScores.reduce((sum, score) => sum + score, 0) / completenessScores.length).toFixed(2)
+    : 0;
+  
+  const min = completenessScores.length > 0
+    ? Math.min(...completenessScores)
+    : 0;
+  
+  const max = completenessScores.length > 0
+    ? Math.max(...completenessScores)
+    : 0;
+  
+  const incompleteCount = completenessScores.filter(score => score < 80).length;
+  
+  return {
+    average,
+    min,
+    max,
+    incompleteCount,
+    completionRate: completenessScores.length > 0
+      ? ((completenessScores.length - incompleteCount) / completenessScores.length * 100).toFixed(2)
+      : 0,
+    byType: typeScores
+  };
 }
 
-function formatAnalyticsOutput(results, format = 'json') {
-  // For most formats, we just return the results object
-  // In a real implementation, this would format data based on the requested format
-  return results;
-}
-
-function findNodeByTypeAndId(nodes, type, id) {
-  return nodes.find(node => node.type === type && node.id === String(id));
-}
-
-function findArtifactByTypeAndId(artifacts, type, id) {
-  if (!artifacts || !artifacts[type]) {
-    return null;
+function calculateCompletenessScore(artifact, type) {
+  // This would be a more sophisticated algorithm in a real implementation
+  // For now, we'll use a simple scoring system
+  
+  let score = 0;
+  let possibleScore = 0;
+  
+  switch (type) {
+    case 'decision':
+      // Required fields
+      possibleScore = 100;
+      if (artifact.summary) score += 40;
+      if (artifact.rationale) score += 30;
+      if (artifact.implementation_details) score += 20;
+      if (artifact.tags && artifact.tags.length > 0) score += 10;
+      break;
+      
+    case 'system_pattern':
+      // Required fields
+      possibleScore = 100;
+      if (artifact.name) score += 30;
+      if (artifact.description) score += 40;
+      if (artifact.tags && artifact.tags.length > 0) score += 10;
+      if (artifact.examples) score += 20;
+      break;
+      
+    case 'progress':
+      // Required fields
+      possibleScore = 100;
+      if (artifact.description) score += 40;
+      if (artifact.status) score += 40;
+      if (artifact.linked_item_type && artifact.linked_item_id) score += 20;
+      break;
+      
+    case 'custom_data':
+      // Required fields
+      possibleScore = 100;
+      if (artifact.category) score += 30;
+      if (artifact.key) score += 30;
+      if (artifact.value) score += 40;
+      break;
   }
   
-  return artifacts[type].find(artifact => artifact.id === String(id));
+  return possibleScore > 0 ? (score / possibleScore * 100) : 0;
 }
 
-function buildGraphFromCentralNode(nodes, relationships, centralNode, depth, relationshipTypes, includeMetadata) {
-  // This would build a graph with the central node at the center
-  // and related nodes up to the specified depth
-  // Simplified implementation with placeholder return
+function analyzeComplexity(data) {
+  const complexityScores = [];
+  const typeScores = {};
+  
+  // Calculate complexity scores for each artifact
+  for (const [type, items] of Object.entries(data)) {
+    if (Array.isArray(items)) {
+      typeScores[type] = {
+        scores: [],
+        average: 0,
+        min: 100,
+        max: 0,
+        highComplexityCount: 0
+      };
+      
+      for (const item of items) {
+        const score = calculateComplexityScore(item, type);
+        complexityScores.push(score);
+        typeScores[type].scores.push(score);
+        
+        typeScores[type].min = Math.min(typeScores[type].min, score);
+        typeScores[type].max = Math.max(typeScores[type].max, score);
+        
+        if (score > 70) {
+          typeScores[type].highComplexityCount++;
+        }
+      }
+      
+      // Calculate average for this type
+      typeScores[type].average = typeScores[type].scores.length > 0
+        ? (typeScores[type].scores.reduce((sum, score) => sum + score, 0) / typeScores[type].scores.length).toFixed(2)
+        : 0;
+    }
+  }
+  
+  // Calculate overall metrics
+  const average = complexityScores.length > 0
+    ? (complexityScores.reduce((sum, score) => sum + score, 0) / complexityScores.length).toFixed(2)
+    : 0;
+  
+  const min = complexityScores.length > 0
+    ? Math.min(...complexityScores)
+    : 0;
+  
+  const max = complexityScores.length > 0
+    ? Math.max(...complexityScores)
+    : 0;
+  
+  const highComplexityCount = complexityScores.filter(score => score > 70).length;
   
   return {
-    nodes: [centralNode],
-    edges: [],
-    centralNode
+    average,
+    min,
+    max,
+    highComplexityCount,
+    highComplexityRate: complexityScores.length > 0
+      ? (highComplexityCount / complexityScores.length * 100).toFixed(2)
+      : 0,
+    byType: typeScores
   };
 }
 
-function buildCompleteGraph(nodes, relationships, relationshipTypes, includeMetadata) {
-  // This would build a complete graph of all nodes and their relationships
-  // Simplified implementation with placeholder return
+function calculateComplexityScore(artifact, type) {
+  // This would be a more sophisticated algorithm in a real implementation
+  // For now, we'll use a simple scoring system
   
-  return {
-    nodes,
-    edges: relationships,
-    metadata: includeMetadata ? { nodeCount: nodes.length, edgeCount: relationships.length } : null
-  };
-}
-
-function calculateGraphMetrics(graph) {
-  // Calculate metrics like density, centrality, etc.
-  // Simplified implementation with placeholder return
+  let score = 0;
   
-  return {
-    density: graph.edges.length / (graph.nodes.length * (graph.nodes.length - 1)),
-    averageDegree: graph.edges.length / graph.nodes.length,
-    diameter: calculateGraphDiameter(graph),
-    componentCount: calculateConnectedComponents(graph)
-  };
-}
-
-function calculateGraphDiameter(graph) {
-  // Calculate the longest shortest path in the graph
-  // This is a complex algorithm, simplified here
-  return Math.min(10, graph.nodes.length); // Placeholder
-}
-
-function calculateConnectedComponents(graph) {
-  // Count connected components in the graph
-  // This is a complex algorithm, simplified here
-  return 1; // Placeholder
-}
-
-function identifyInfluentialNodes(graph) {
-  // Identify nodes with high centrality
-  // Simplified implementation with placeholder return
+  switch (type) {
+    case 'decision':
+      // Base score
+      score = 40;
+      
+      // Add based on description length
+      if (artifact.rationale) {
+        score += Math.min(30, artifact.rationale.length / 20);
+      }
+      
+      // Add based on implementation details
+      if (artifact.implementation_details) {
+        score += Math.min(30, artifact.implementation_details.length / 20);
+      }
+      break;
+      
+    case 'system_pattern':
+      // Base score
+      score = 50;
+      
+      // Add based on description length
+      if (artifact.description) {
+        score += Math.min(40, artifact.description.length / 20);
+      }
+      
+      // Add for examples
+      if (artifact.examples) {
+        score += 10;
+      }
+      break;
+      
+    case 'progress':
+      // Progress items are generally less complex
+      score = 30;
+      
+      // Add based on description length
+      if (artifact.description) {
+        score += Math.min(20, artifact.description.length / 20);
+      }
+      
+      // Add if it has children
+      if (artifact.children && artifact.children.length > 0) {
+        score += Math.min(50, artifact.children.length * 10);
+      }
+      break;
+      
+    case 'custom_data':
+      // Base score depends on value structure
+      score = 30;
+      
+      // Add based on value complexity
+      if (artifact.value) {
+        if (typeof artifact.value === 'object') {
+          const valueStr = JSON.stringify(artifact.value);
+          score += Math.min(70, valueStr.length / 30);
+        } else if (typeof artifact.value === 'string') {
+          score += Math.min(40, artifact.value.length / 50);
+        }
+      }
+      break;
+  }
   
-  return graph.nodes.slice(0, 5).map(node => ({
-    ...node,
-    centrality: Math.random() * 100 // Placeholder value
+  return Math.min(100, score);
+}
+
+function extractArtifacts(data, { limit }) {
+  const artifacts = [];
+  
+  // Extract artifacts from data
+  for (const [type, items] of Object.entries(data)) {
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        artifacts.push({
+          type,
+          id: item.id,
+          data: item
+        });
+      }
+    }
+  }
+  
+  // Sort by relevance (this would be more sophisticated in a real implementation)
+  artifacts.sort((a, b) => {
+    // For now, just sort by type and ID
+    if (a.type !== b.type) {
+      return a.type.localeCompare(b.type);
+    }
+    
+    return a.id - b.id;
+  });
+  
+  // Apply limit if specified
+  return limit ? artifacts.slice(0, limit) : artifacts;
+}
+
+function calculateGraphDensity(data) {
+  const nodeCount = data.nodes?.length || 0;
+  const edgeCount = data.relationships?.length || 0;
+  
+  if (nodeCount <= 1) {
+    return 0;
+  }
+  
+  // Density = 2E / N(N-1) for undirected graph
+  // For directed graph: E / N(N-1)
+  return (edgeCount / (nodeCount * (nodeCount - 1))).toFixed(4);
+}
+
+function calculateCentralityScores(data) {
+  const nodeCount = data.nodes?.length || 0;
+  const nodes = data.nodes || [];
+  const relationships = data.relationships || [];
+  
+  if (nodeCount === 0) {
+    return [];
+  }
+  
+  // Calculate degree centrality for each node
+  const degreeCentrality = new Map();
+  
+  // Initialize all nodes with zero degree
+  for (const node of nodes) {
+    const nodeKey = `${node.type}:${node.id}`;
+    degreeCentrality.set(nodeKey, { inDegree: 0, outDegree: 0, total: 0 });
+  }
+  
+  // Count degrees from relationships
+  for (const rel of relationships) {
+    const sourceKey = `${rel.source.type}:${rel.source.id}`;
+    const targetKey = `${rel.target.type}:${rel.target.id}`;
+    
+    // Increment out-degree for source
+    if (degreeCentrality.has(sourceKey)) {
+      const current = degreeCentrality.get(sourceKey);
+      current.outDegree++;
+      current.total++;
+      degreeCentrality.set(sourceKey, current);
+    }
+    
+    // Increment in-degree for target
+    if (degreeCentrality.has(targetKey)) {
+      const current = degreeCentrality.get(targetKey);
+      current.inDegree++;
+      current.total++;
+      degreeCentrality.set(targetKey, current);
+    }
+  }
+  
+  // Convert to array and sort by total degree
+  return Array.from(degreeCentrality.entries())
+    .map(([nodeKey, scores]) => {
+      const [type, id] = nodeKey.split(':');
+      return {
+        node: { type, id },
+        inDegree: scores.inDegree,
+        outDegree: scores.outDegree,
+        totalDegree: scores.total,
+        normalizedCentrality: nodeCount > 1 ? (scores.total / (nodeCount - 1)).toFixed(4) : 0
+      };
+    })
+    .sort((a, b) => b.totalDegree - a.totalDegree);
+}
+
+function identifyCommunities(data) {
+  // This would be a more sophisticated algorithm in a real implementation
+  // For now, we'll use a simple approach based on node types
+  
+  const nodes = data.nodes || [];
+  
+  // Group nodes by type
+  const communities = new Map();
+  
+  for (const node of nodes) {
+    if (!communities.has(node.type)) {
+      communities.set(node.type, []);
+    }
+    
+    communities.get(node.type).push(node.id);
+  }
+  
+  return Array.from(communities.entries())
+    .map(([type, nodeIds]) => ({
+      name: `${type} Community`,
+      type,
+      size: nodeIds.length,
+      nodes: nodeIds.map(id => ({ type, id }))
+    }))
+    .sort((a, b) => b.size - a.size);
+}
+
+function findIsolatedNodes(data) {
+  const nodes = data.nodes || [];
+  const relationships = data.relationships || [];
+  
+  // Find nodes that are not in any relationship
+  return nodes.filter(node => {
+    const nodeKey = `${node.type}:${node.id}`;
+    
+    return !relationships.some(rel => 
+      `${rel.source.type}:${rel.source.id}` === nodeKey ||
+      `${rel.target.type}:${rel.target.id}` === nodeKey
+    );
+  }).map(node => ({
+    type: node.type,
+    id: node.id,
+    data: node.data
   }));
 }
 
-function detectCommunities(graph) {
-  // Detect communities/clusters in the graph
-  // Simplified implementation with placeholder return
-  
-  return [
-    {
-      id: 'community1',
-      nodes: graph.nodes.slice(0, Math.ceil(graph.nodes.length / 2)),
-      density: 0.8
-    },
-    {
-      id: 'community2',
-      nodes: graph.nodes.slice(Math.ceil(graph.nodes.length / 2)),
-      density: 0.6
-    }
-  ];
-}
-
-function filterActivitiesByTimeframe(activities, timeframe, startDate, endDate) {
-  // Similar to filterDataByTimeframe, but specifically for activity data
-  // Simplified implementation that reuses the existing function
-  return filterDataByTimeframe({ activities }, timeframe, startDate, endDate).activities;
-}
-
-function filterActivitiesByType(activities, activityTypes, artifactTypes) {
-  if ((!activityTypes || activityTypes.length === 0) && 
-      (!artifactTypes || artifactTypes.length === 0)) {
-    return activities;
+function processNodes(nodes, includeMetadata) {
+  if (!nodes) {
+    return [];
   }
   
-  return activities.filter(activity => {
-    const typeMatch = activityTypes.length === 0 || 
-      activityTypes.includes(activity.type);
+  return nodes.map(node => {
+    if (includeMetadata) {
+      return node;
+    }
     
-    const artifactTypeMatch = artifactTypes.length === 0 || 
-      artifactTypes.includes(activity.artifactType);
-    
-    return typeMatch && artifactTypeMatch;
+    // Remove detailed data if metadata is not requested
+    const { data, ...nodeWithoutData } = node;
+    return {
+      ...nodeWithoutData,
+      label: getNodeLabel(node)
+    };
   });
 }
 
-function groupActivities(activities, groupBy) {
-  const grouped = {};
+function getNodeLabel(node) {
+  if (!node.data) {
+    return `${node.type}:${node.id}`;
+  }
   
+  switch (node.type) {
+    case 'decision':
+      return node.data.summary || `Decision ${node.id}`;
+    case 'system_pattern':
+      return node.data.name || `Pattern ${node.id}`;
+    case 'progress':
+      return node.data.description || `Progress ${node.id}`;
+    case 'custom_data':
+      return `${node.data.category}:${node.data.key}` || `Custom ${node.id}`;
+    default:
+      return `${node.type}:${node.id}`;
+  }
+}
+
+function calculateNodeMetrics(nodeType, nodeId, data) {
+  const relationships = data.relationships || [];
+  
+  // Find relationships involving this node
+  const nodeKey = `${nodeType}:${nodeId}`;
+  
+  const incomingRelationships = relationships.filter(rel => 
+    `${rel.target.type}:${rel.target.id}` === nodeKey
+  );
+  
+  const outgoingRelationships = relationships.filter(rel => 
+    `${rel.source.type}:${rel.source.id}` === nodeKey
+  );
+  
+  // Count relationships by type
+  const incomingByType = new Map();
+  const outgoingByType = new Map();
+  
+  for (const rel of incomingRelationships) {
+    const relType = rel.type || 'unknown';
+    incomingByType.set(relType, (incomingByType.get(relType) || 0) + 1);
+  }
+  
+  for (const rel of outgoingRelationships) {
+    const relType = rel.type || 'unknown';
+    outgoingByType.set(relType, (outgoingByType.get(relType) || 0) + 1);
+  }
+  
+  return {
+    inDegree: incomingRelationships.length,
+    outDegree: outgoingRelationships.length,
+    totalDegree: incomingRelationships.length + outgoingRelationships.length,
+    incomingRelationshipTypes: Object.fromEntries(incomingByType),
+    outgoingRelationshipTypes: Object.fromEntries(outgoingByType)
+  };
+}
+
+function groupActivities(activities, groupBy, startDate, endDate) {
+  // Group activities based on the specified grouping
+  
+  switch (groupBy.toLowerCase()) {
+    case 'day':
+      return groupActivitiesByDay(activities, startDate, endDate);
+    case 'week':
+      return groupActivitiesByWeek(activities, startDate, endDate);
+    case 'month':
+      return groupActivitiesByMonth(activities, startDate, endDate);
+    case 'type':
+      return groupActivitiesByType(activities);
+    case 'user':
+      return groupActivitiesByUser(activities);
+    default:
+      return groupActivitiesByDay(activities, startDate, endDate);
+  }
+}
+
+function groupActivitiesByDay(activities, startDate, endDate) {
+  const groups = new Map();
+  
+  // Initialize groups for each day in the range
+  const dayCount = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+  
+  for (let i = 0; i < dayCount; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    const dateString = date.toISOString().split('T')[0];
+    groups.set(dateString, []);
+  }
+  
+  // Group activities
   for (const activity of activities) {
-    const groupKey = getGroupKey(activity, groupBy);
+    const dateString = activity.timestamp.split('T')[0];
     
-    if (!grouped[groupKey]) {
-      grouped[groupKey] = {
-        key: groupKey,
-        activities: [],
-        count: 0
-      };
+    if (groups.has(dateString)) {
+      groups.get(dateString).push(activity);
+    }
+  }
+  
+  // Convert to array
+  return Array.from(groups.entries())
+    .map(([date, activitiesOnDay]) => ({
+      group: date,
+      count: activitiesOnDay.length,
+      activities: activitiesOnDay
+    }))
+    .sort((a, b) => a.group.localeCompare(b.group));
+}
+
+function groupActivitiesByWeek(activities, startDate, endDate) {
+  const groups = new Map();
+  
+  // Initialize groups for each week in the range
+  const weekCount = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24 * 7));
+  
+  for (let i = 0; i < weekCount; i++) {
+    const weekStart = new Date(startDate);
+    weekStart.setDate(weekStart.getDate() + i * 7);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    const weekKey = `${weekStart.toISOString().split('T')[0]} to ${weekEnd.toISOString().split('T')[0]}`;
+    groups.set(weekKey, {
+      start: weekStart,
+      end: weekEnd,
+      activities: []
+    });
+  }
+  
+  // Group activities
+  for (const activity of activities) {
+    const activityDate = new Date(activity.timestamp);
+    
+    // Find the week this activity belongs to
+    for (const [weekKey, weekData] of groups.entries()) {
+      if (activityDate >= weekData.start && activityDate <= weekData.end) {
+        weekData.activities.push(activity);
+        break;
+      }
+    }
+  }
+  
+  // Convert to array
+  return Array.from(groups.entries())
+    .map(([weekKey, weekData]) => ({
+      group: weekKey,
+      count: weekData.activities.length,
+      activities: weekData.activities
+    }))
+    .sort((a, b) => a.group.localeCompare(b.group));
+}
+
+function groupActivitiesByMonth(activities, startDate, endDate) {
+  const groups = new Map();
+  
+  // Initialize groups for each month in the range
+  let currentDate = new Date(startDate);
+  
+  while (currentDate <= endDate) {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+    
+    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+    groups.set(monthKey, {
+      start: monthStart,
+      end: monthEnd,
+      activities: []
+    });
+    
+    // Move to the next month
+    currentDate = new Date(year, month + 1, 1);
+  }
+  
+  // Group activities
+  for (const activity of activities) {
+    const activityDate = new Date(activity.timestamp);
+    const monthKey = `${activityDate.getFullYear()}-${String(activityDate.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (groups.has(monthKey)) {
+      groups.get(monthKey).activities.push(activity);
+    }
+  }
+  
+  // Convert to array
+  return Array.from(groups.entries())
+    .map(([monthKey, monthData]) => ({
+      group: monthKey,
+      count: monthData.activities.length,
+      activities: monthData.activities
+    }))
+    .sort((a, b) => a.group.localeCompare(b.group));
+}
+
+function groupActivitiesByType(activities) {
+  const groups = new Map();
+  
+  // Group activities by type
+  for (const activity of activities) {
+    const type = activity.artifactType;
+    
+    if (!groups.has(type)) {
+      groups.set(type, []);
     }
     
-    grouped[groupKey].activities.push(activity);
-    grouped[groupKey].count++;
+    groups.get(type).push(activity);
   }
   
-  return grouped;
+  // Convert to array
+  return Array.from(groups.entries())
+    .map(([type, activitiesOfType]) => ({
+      group: type,
+      count: activitiesOfType.length,
+      activities: activitiesOfType
+    }))
+    .sort((a, b) => b.count - a.count);
 }
 
-function getGroupKey(activity, groupBy) {
-  switch (groupBy) {
-    case 'day':
-      return formatDateForTimeUnit(new Date(activity.timestamp), 'day');
-    case 'week':
-      return formatDateForTimeUnit(new Date(activity.timestamp), 'week');
-    case 'month':
-      return formatDateForTimeUnit(new Date(activity.timestamp), 'month');
-    case 'type':
-      return activity.type;
-    case 'artifact':
-      return activity.artifactType;
-    case 'user':
-      return activity.userId || 'unknown';
-    default:
-      return 'all';
+function groupActivitiesByUser(activities) {
+  const groups = new Map();
+  
+  // Group activities by user
+  for (const activity of activities) {
+    const user = activity.userId || 'unknown';
+    
+    if (!groups.has(user)) {
+      groups.set(user, []);
+    }
+    
+    groups.get(user).push(activity);
   }
+  
+  // Convert to array
+  return Array.from(groups.entries())
+    .map(([user, activitiesByUser]) => ({
+      group: user,
+      count: activitiesByUser.length,
+      activities: activitiesByUser
+    }))
+    .sort((a, b) => b.count - a.count);
 }
 
-function calculateCumulativeActivities(groupedActivities) {
-  const keys = Object.keys(groupedActivities).sort();
-  const cumulative = {};
+function calculateCumulativeActivity(groupedActivities) {
+  // Calculate cumulative activity over time
+  
+  const cumulative = [...groupedActivities];
   let runningTotal = 0;
   
-  for (const key of keys) {
-    runningTotal += groupedActivities[key].count;
-    
-    cumulative[key] = {
-      ...groupedActivities[key],
-      cumulative: runningTotal
-    };
+  for (let i = 0; i < cumulative.length; i++) {
+    runningTotal += cumulative[i].count;
+    cumulative[i].cumulativeCount = runningTotal;
   }
   
   return cumulative;
 }
 
-function countTotalActivities(activities) {
-  return activities.length;
-}
-
-function countActivitiesByType(activities) {
-  const counts = {};
+function calculateActivityTrends(groupedActivities) {
+  // Calculate activity trends
   
-  for (const activity of activities) {
-    if (!counts[activity.type]) {
-      counts[activity.type] = 0;
-    }
-    
-    counts[activity.type]++;
+  if (groupedActivities.length < 2) {
+    return {
+      direction: 'stable',
+      change: '0%',
+      slope: 0
+    };
   }
   
-  return counts;
-}
-
-function countActivitiesByArtifactType(activities) {
-  const counts = {};
+  // Calculate linear regression
+  const xValues = Array.from({ length: groupedActivities.length }, (_, i) => i);
+  const yValues = groupedActivities.map(group => group.count);
   
-  for (const activity of activities) {
-    if (!counts[activity.artifactType]) {
-      counts[activity.artifactType] = 0;
-    }
-    
-    counts[activity.artifactType]++;
+  const xMean = xValues.reduce((sum, x) => sum + x, 0) / xValues.length;
+  const yMean = yValues.reduce((sum, y) => sum + y, 0) / yValues.length;
+  
+  let numerator = 0;
+  let denominator = 0;
+  
+  for (let i = 0; i < xValues.length; i++) {
+    numerator += (xValues[i] - xMean) * (yValues[i] - yMean);
+    denominator += (xValues[i] - xMean) ** 2;
   }
   
-  return counts;
+  const slope = denominator !== 0 ? numerator / denominator : 0;
+  const intercept = yMean - slope * xMean;
+  
+  // Calculate trend direction and change
+  const firstValue = yValues[0];
+  const lastValue = yValues[yValues.length - 1];
+  const change = firstValue !== 0 ? (lastValue - firstValue) / firstValue : 0;
+  
+  return {
+    direction: slope > 0.1 ? 'increasing' : slope < -0.1 ? 'decreasing' : 'stable',
+    change: `${(change * 100).toFixed(1)}%`,
+    slope
+  };
 }
 
-function identifyPeakActivityPeriods(groupedActivities) {
-  const threshold = calculateActivityThreshold(groupedActivities);
-  const peaks = [];
+function findPeakActivity(groupedActivities) {
+  if (groupedActivities.length === 0) {
+    return null;
+  }
   
-  for (const [key, data] of Object.entries(groupedActivities)) {
-    if (data.count > threshold) {
-      peaks.push({
-        period: key,
-        count: data.count,
-        percentAboveAverage: ((data.count - threshold) / threshold) * 100
+  return groupedActivities.reduce((peak, current) => 
+    current.count > peak.count ? current : peak
+  ).group;
+}
+
+function calculateAverageActivityPerDay(groupedActivities) {
+  if (groupedActivities.length === 0) {
+    return 0;
+  }
+  
+  const totalCount = groupedActivities.reduce((sum, group) => sum + group.count, 0);
+  return (totalCount / groupedActivities.length).toFixed(2);
+}
+
+function findMostActiveType(groupedActivities) {
+  if (groupedActivities.length === 0) {
+    return null;
+  }
+  
+  // This assumes groupedActivities is grouped by type
+  // If it's grouped by day/week/month, this would need to be calculated differently
+  return groupedActivities.reduce((most, current) => 
+    current.count > most.count ? current : most
+  ).group;
+}
+
+function findMostActiveUser(activities) {
+  if (!activities || activities.length === 0) {
+    return null;
+  }
+  
+  const userCounts = new Map();
+  
+  for (const activity of activities) {
+    const user = activity.userId || 'unknown';
+    userCounts.set(user, (userCounts.get(user) || 0) + 1);
+  }
+  
+  let mostActiveUser = null;
+  let maxCount = 0;
+  
+  for (const [user, count] of userCounts.entries()) {
+    if (count > maxCount) {
+      mostActiveUser = user;
+      maxCount = count;
+    }
+  }
+  
+  return mostActiveUser;
+}
+
+function findArtifact(data, artifactType, artifactId) {
+  if (!data.artifacts || !data.artifacts[artifactType]) {
+    return null;
+  }
+  
+  return data.artifacts[artifactType].find(artifact => 
+    String(artifact.id) === String(artifactId)
+  );
+}
+
+function calculateDirectReferences(data, artifactType, artifactId) {
+  if (!data.relationships) {
+    return { count: 0, references: [] };
+  }
+  
+  // Find relationships where this artifact is the source or target
+  const references = data.relationships.filter(rel => 
+    (rel.source.type === artifactType && rel.source.id === String(artifactId)) ||
+    (rel.target.type === artifactType && rel.target.id === String(artifactId))
+  );
+  
+  // Process the references
+  const processedReferences = references.map(rel => {
+    const isSource = rel.source.type === artifactType && rel.source.id === String(artifactId);
+    const relatedArtifact = isSource ? rel.target : rel.source;
+    
+    return {
+      relationType: rel.type,
+      artifactType: relatedArtifact.type,
+      artifactId: relatedArtifact.id,
+      description: rel.description || '',
+      direction: isSource ? 'outgoing' : 'incoming'
+    };
+  });
+  
+  return {
+    count: references.length,
+    references: processedReferences
+  };
+}
+
+function calculateIndirectReferences(data, artifactType, artifactId, depth) {
+  if (!data.relationships || depth <= 1) {
+    return { count: 0, references: [] };
+  }
+  
+  // Start with direct references
+  const directRefs = calculateDirectReferences(data, artifactType, artifactId);
+  const directRefIds = new Set(directRefs.references.map(ref => `${ref.artifactType}:${ref.artifactId}`));
+  
+  // Map to track visited nodes
+  const visited = new Set([`${artifactType}:${artifactId}`]);
+  for (const id of directRefIds) {
+    visited.add(id);
+  }
+  
+  // Find indirect references up to the specified depth
+  const indirectRefs = [];
+  const queue = directRefs.references.map(ref => ({
+    artifactType: ref.artifactType,
+    artifactId: ref.artifactId,
+    depth: 1,
+    path: [`${artifactType}:${artifactId}`, `${ref.artifactType}:${ref.artifactId}`]
+  }));
+  
+  while (queue.length > 0) {
+    const current = queue.shift();
+    
+    // Skip if we've reached the maximum depth
+    if (current.depth >= depth) {
+      continue;
+    }
+    
+    // Find relationships for this artifact
+    const nextRefs = calculateDirectReferences(data, current.artifactType, current.artifactId);
+    
+    for (const ref of nextRefs.references) {
+      const refId = `${ref.artifactType}:${ref.artifactId}`;
+      
+      // Skip if we've already visited this node or it's the original artifact
+      if (visited.has(refId) || refId === `${artifactType}:${artifactId}`) {
+        continue;
+      }
+      
+      // Mark as visited
+      visited.add(refId);
+      
+      // Add to indirect references
+      indirectRefs.push({
+        ...ref,
+        pathDepth: current.depth + 1,
+        path: [...current.path, refId]
+      });
+      
+      // Add to queue for next level
+      queue.push({
+        artifactType: ref.artifactType,
+        artifactId: ref.artifactId,
+        depth: current.depth + 1,
+        path: [...current.path, refId]
       });
     }
   }
   
-  return peaks.sort((a, b) => b.count - a.count);
-}
-
-function calculateActivityThreshold(groupedActivities) {
-  const counts = Object.values(groupedActivities).map(data => data.count);
-  const sum = counts.reduce((total, count) => total + count, 0);
-  const average = sum / counts.length || 0;
-  
-  return average * 1.5; // Threshold at 150% of average
-}
-
-function calculateActivityTrends(groupedActivities) {
-  const keys = Object.keys(groupedActivities).sort();
-  
-  if (keys.length < 2) {
-    return { direction: 'stable', change: 0, percentChange: 0 };
-  }
-  
-  const firstPeriod = groupedActivities[keys[0]];
-  const lastPeriod = groupedActivities[keys[keys.length - 1]];
-  
-  const change = lastPeriod.count - firstPeriod.count;
-  const percentChange = firstPeriod.count > 0
-    ? (change / firstPeriod.count * 100)
-    : 0;
-  
-  let direction = 'stable';
-  if (change > 0) {
-    direction = 'increasing';
-  } else if (change < 0) {
-    direction = 'decreasing';
-  }
-  
-  return { direction, change, percentChange };
-}
-
-function calculateActiveDays(groupedActivities) {
-  const totalDays = Object.keys(groupedActivities).length;
-  let activeDays = 0;
-  
-  for (const data of Object.values(groupedActivities)) {
-    if (data.count > 0) {
-      activeDays++;
-    }
-  }
-  
   return {
-    activeDays,
-    totalDays,
-    activePercentage: totalDays > 0 ? (activeDays / totalDays * 100) : 0
+    count: indirectRefs.length,
+    references: indirectRefs
   };
 }
 
-function calculateUserActivity(activities) {
-  const userActivity = {};
+function calculateImpactMetrics(artifact, directReferences, indirectReferences) {
+  // This would be a more sophisticated algorithm in a real implementation
   
-  for (const activity of activities) {
-    const userId = activity.userId || 'unknown';
-    
-    if (!userActivity[userId]) {
-      userActivity[userId] = {
-        count: 0,
-        types: {},
-        artifacts: {}
-      };
+  // Calculate impact score based on references
+  const directScore = directReferences.count * 10;
+  const indirectScore = indirectReferences ? indirectReferences.count * 5 : 0;
+  
+  // Calculate weighted score based on artifact type
+  let typeMultiplier = 1;
+  
+  switch (artifact.type) {
+    case 'decision':
+      typeMultiplier = 1.5;
+      break;
+    case 'system_pattern':
+      typeMultiplier = 1.2;
+      break;
+    case 'progress':
+      typeMultiplier = 0.8;
+      break;
+    case 'custom_data':
+      typeMultiplier = 1.0;
+      break;
+  }
+  
+  const rawScore = (directScore + indirectScore) * typeMultiplier;
+  
+  // Normalize score to 0-100 range
+  const score = Math.min(100, rawScore);
+  
+  // Find key affected artifacts
+  const allReferences = [
+    ...directReferences.references,
+    ...(indirectReferences ? indirectReferences.references : [])
+  ];
+  
+  // Group references by artifact type
+  const refsByType = new Map();
+  
+  for (const ref of allReferences) {
+    if (!refsByType.has(ref.artifactType)) {
+      refsByType.set(ref.artifactType, []);
     }
     
-    userActivity[userId].count++;
-    
-    if (!userActivity[userId].types[activity.type]) {
-      userActivity[userId].types[activity.type] = 0;
-    }
-    userActivity[userId].types[activity.type]++;
-    
-    if (!userActivity[userId].artifacts[activity.artifactType]) {
-      userActivity[userId].artifacts[activity.artifactType] = 0;
-    }
-    userActivity[userId].artifacts[activity.artifactType]++;
+    refsByType.get(ref.artifactType).push(ref);
   }
   
-  return userActivity;
-}
-
-function analyzeReferenceImpact(data, targetArtifact, depth, includeIndirect) {
-  // Analyze how many other artifacts reference this one
-  // Simplified implementation with placeholder return
+  // Get top references from each type
+  const keyAffectedArtifacts = [];
   
-  return {
-    directReferences: countDirectReferences(data, targetArtifact),
-    indirectReferences: includeIndirect ? countIndirectReferences(data, targetArtifact, depth) : 0,
-    referencesByType: getReferencesByType(data, targetArtifact)
-  };
-}
-
-function countDirectReferences(data, targetArtifact) {
-  // Count direct references to the target artifact
-  // Simplified implementation with placeholder return
-  return Math.floor(Math.random() * 10); // Placeholder
-}
-
-function countIndirectReferences(data, targetArtifact, depth) {
-  // Count indirect references to the target artifact up to the specified depth
-  // Simplified implementation with placeholder return
-  return Math.floor(Math.random() * 20); // Placeholder
-}
-
-function getReferencesByType(data, targetArtifact) {
-  // Group references by type
-  // Simplified implementation with placeholder return
-  return {
-    decision: Math.floor(Math.random() * 5),
-    system_pattern: Math.floor(Math.random() * 5),
-    progress: Math.floor(Math.random() * 5)
-  }; // Placeholder
-}
-
-function analyzeDependencyImpact(data, targetArtifact, depth, includeIndirect) {
-  // Analyze artifacts that depend on this one
-  // Simplified implementation with placeholder return
-  
-  return {
-    directDependencies: countDirectDependencies(data, targetArtifact),
-    indirectDependencies: includeIndirect ? countIndirectDependencies(data, targetArtifact, depth) : 0,
-    dependenciesByType: getDependenciesByType(data, targetArtifact)
-  };
-}
-
-function countDirectDependencies(data, targetArtifact) {
-  // Count direct dependencies on the target artifact
-  // Simplified implementation with placeholder return
-  return Math.floor(Math.random() * 10); // Placeholder
-}
-
-function countIndirectDependencies(data, targetArtifact, depth) {
-  // Count indirect dependencies on the target artifact up to the specified depth
-  // Simplified implementation with placeholder return
-  return Math.floor(Math.random() * 20); // Placeholder
-}
-
-function getDependenciesByType(data, targetArtifact) {
-  // Group dependencies by type
-  // Simplified implementation with placeholder return
-  return {
-    decision: Math.floor(Math.random() * 5),
-    system_pattern: Math.floor(Math.random() * 5),
-    progress: Math.floor(Math.random() * 5)
-  }; // Placeholder
-}
-
-function analyzeChangeImpact(data, targetArtifact, depth, includeIndirect) {
-  // Analyze impact of changes to this artifact
-  // Simplified implementation with placeholder return
-  
-  return {
-    impactScore: Math.floor(Math.random() * 100),
-    impactedArtifacts: Math.floor(Math.random() * 20),
-    impactTree: generateImpactTree(targetArtifact, depth)
-  };
-}
-
-function generateImpactTree(targetArtifact, depth) {
-  // Generate a tree of impacted artifacts
-  // Simplified implementation with placeholder return
-  
-  return {
-    root: targetArtifact,
-    depth,
-    children: [] // Placeholder
-  };
-}
-
-function analyzeQualityImpact(data, targetArtifact, depth, includeIndirect) {
-  // Analyze quality impact of this artifact
-  // Simplified implementation with placeholder return
-  
-  return {
-    qualityScore: Math.floor(Math.random() * 100),
-    qualityInfluence: Math.floor(Math.random() * 100),
-    qualityDimensions: {
-      completeness: Math.floor(Math.random() * 100),
-      accuracy: Math.floor(Math.random() * 100),
-      clarity: Math.floor(Math.random() * 100),
-      consistency: Math.floor(Math.random() * 100)
-    }
-  };
-}
-
-function analyzeUsageImpact(data, targetArtifact, depth, includeIndirect) {
-  // Analyze usage of this artifact
-  // Simplified implementation with placeholder return
-  
-  return {
-    usageScore: Math.floor(Math.random() * 100),
-    usageCount: Math.floor(Math.random() * 50),
-    usageByUser: {
-      user1: Math.floor(Math.random() * 10),
-      user2: Math.floor(Math.random() * 10)
-    }
-  };
-}
-
-function calculateImpactScore(impactAnalysis) {
-  // Calculate overall impact score based on various factors
-  // Simplified implementation with placeholder return
-  
-  return Math.floor(Math.random() * 100); // Placeholder
-}
-
-function generateImpactVisualizationData(impactAnalysis) {
-  // Generate data for visualizing impact
-  // Simplified implementation with placeholder return
-  
-  return {
-    nodes: [],
-    edges: [],
-    layout: 'force-directed'
-  }; // Placeholder
-}
-
-function generateDashboardId() {
-  return 'dashboard_' + Math.random().toString(36).substring(2, 15);
-}
-
-function formatAsJSON(data, config) {
-  // Format data as JSON
-  // Simplified implementation that just stringifies the data
-  return JSON.stringify(data, null, 2);
-}
-
-function formatAsCSV(data, config) {
-  // Format data as CSV
-  // Simplified implementation with placeholder return
-  return 'header1,header2,header3\nvalue1,value2,value3'; // Placeholder
-}
-
-function formatAsExcel(data, config) {
-  // Format data for Excel
-  // Simplified implementation with placeholder return
-  return 'Excel data placeholder'; // Placeholder
-}
-
-function formatAsPDF(data, config) {
-  // Format data for PDF
-  // Simplified implementation with placeholder return
-  return 'PDF data placeholder'; // Placeholder
-}
-
-function formatAsHTML(data, config) {
-  // Format data as HTML
-  // Simplified implementation with placeholder return
-  return '<html><body><h1>Analytics Report</h1></body></html>'; // Placeholder
-}
-
-function formatAsMarkdown(data, config) {
-  // Format data as Markdown
-  // Simplified implementation with placeholder return
-  return '# Analytics Report\n\n## Summary\n\n'; // Placeholder
-}
-
-function getContentTypeForFormat(format) {
-  switch (format) {
-    case 'json':
-      return 'application/json';
-    case 'csv':
-      return 'text/csv';
-    case 'excel':
-      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    case 'pdf':
-      return 'application/pdf';
-    case 'html':
-      return 'text/html';
-    case 'markdown':
-      return 'text/markdown';
-    default:
-      return 'application/octet-stream';
+  for (const [type, refs] of refsByType.entries()) {
+    // Sort by some criteria (e.g., direction, depth)
+    const sortedRefs = refs.sort((a, b) => {
+      // Prioritize direct connections
+      if (a.pathDepth && b.pathDepth) {
+        return a.pathDepth - b.pathDepth;
+      }
+      
+      // For direct references, prioritize incoming
+      if (a.direction && b.direction) {
+        if (a.direction === 'incoming' && b.direction !== 'incoming') return -1;
+        if (a.direction !== 'incoming' && b.direction === 'incoming') return 1;
+      }
+      
+      return 0;
+    });
+    
+    // Take top 2 from each type
+    keyAffectedArtifacts.push(...sortedRefs.slice(0, 2));
   }
+  
+  return {
+    score,
+    keyAffectedArtifacts: keyAffectedArtifacts.slice(0, 5),
+    directRefCount: directReferences.count,
+    indirectRefCount: indirectReferences ? indirectReferences.count : 0,
+    totalRefCount: directReferences.count + (indirectReferences ? indirectReferences.count : 0)
+  };
 }
 
-function countDataPoints(data) {
-  // Count the number of data points in the analytics data
-  // Simplified implementation with placeholder calculation
+function estimateChangePropagation(data, artifactType, artifactId) {
+  // This would be a more sophisticated algorithm in a real implementation
+  
+  // Get direct references
+  const directRefs = calculateDirectReferences(data, artifactType, artifactId);
+  
+  // Calculate risk based on number and types of references
+  let riskScore = 0;
+  
+  // Higher risk for more references
+  riskScore += directRefs.count * 5;
+  
+  // Higher risk for certain reference types
+  for (const ref of directRefs.references) {
+    if (ref.relationType === 'implements' || ref.relationType === 'depends_on') {
+      riskScore += 10;
+    }
+    
+    if (ref.artifactType === 'system_pattern') {
+      riskScore += 15;
+    }
+  }
+  
+  // Determine risk level
+  let riskLevel;
+  if (riskScore < 30) {
+    riskLevel = 'low';
+  } else if (riskScore < 70) {
+    riskLevel = 'medium';
+  } else {
+    riskLevel = 'high';
+  }
+  
+  // Identify affected artifacts
+  const affectedArtifacts = directRefs.references.map(ref => ({
+    type: ref.artifactType,
+    id: ref.artifactId,
+    relationshipType: ref.relationType,
+    direction: ref.direction
+  }));
+  
+  return {
+    riskScore,
+    riskLevel,
+    affectedArtifacts,
+    directImpactCount: directRefs.count
+  };
+}
+
+function processDateRange(timeframe, startDate, endDate) {
+  // Process the date range based on the timeframe or explicit start/end dates
+  const now = new Date();
+  let effectiveStartDate;
+  let effectiveEndDate = new Date(now);
+  
+  if (startDate && endDate) {
+    // Use explicit date range
+    effectiveStartDate = new Date(startDate);
+    effectiveEndDate = new Date(endDate);
+  } else if (timeframe) {
+    // Calculate date range based on timeframe
+    switch (timeframe.toLowerCase()) {
+      case 'day':
+        effectiveStartDate = new Date(now);
+        effectiveStartDate.setDate(now.getDate() - 1);
+        break;
+      case 'week':
+        effectiveStartDate = new Date(now);
+        effectiveStartDate.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        effectiveStartDate = new Date(now);
+        effectiveStartDate.setMonth(now.getMonth() - 1);
+        break;
+      case 'quarter':
+        effectiveStartDate = new Date(now);
+        effectiveStartDate.setMonth(now.getMonth() - 3);
+        break;
+      case 'year':
+        effectiveStartDate = new Date(now);
+        effectiveStartDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        // Default to last 30 days
+        effectiveStartDate = new Date(now);
+        effectiveStartDate.setDate(now.getDate() - 30);
+    }
+  } else {
+    // Default to last 30 days
+    effectiveStartDate = new Date(now);
+    effectiveStartDate.setDate(now.getDate() - 30);
+  }
+  
+  return { effectiveStartDate, effectiveEndDate };
+}
+
+function calculateDistribution(values, bucketCount) {
+  if (!values || values.length === 0) {
+    return [];
+  }
+  
+  // Find min and max
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  
+  // Calculate bucket size
+  const bucketSize = (max - min) / bucketCount;
+  
+  // Initialize buckets
+  const buckets = Array(bucketCount).fill(0);
+  
+  // Count values in each bucket
+  for (const value of values) {
+    const bucketIndex = Math.min(
+      bucketCount - 1,
+      Math.floor((value - min) / bucketSize)
+    );
+    buckets[bucketIndex]++;
+  }
+  
+  // Format as distribution
+  return buckets.map((count, index) => {
+    const bucketMin = min + index * bucketSize;
+    const bucketMax = bucketMin + bucketSize;
+    
+    return {
+      range: `${bucketMin.toFixed(2)} - ${bucketMax.toFixed(2)}`,
+      count,
+      percentage: (count / values.length * 100).toFixed(2)
+    };
+  });
+}
+
+function normalizeAnalyticsResults(results) {
+  // Normalize various metrics to consistent scales
+  
+  // Normalize quality metrics
+  if (results.qualityMetrics) {
+    results.qualityMetrics.normalizedScore = results.qualityMetrics.average / 100;
+  }
+  
+  // Normalize complexity metrics
+  if (results.complexityMetrics) {
+    results.complexityMetrics.normalizedScore = results.complexityMetrics.average / 100;
+  }
+  
+  // Normalize completeness metrics
+  if (results.completenessMetrics) {
+    results.completenessMetrics.normalizedScore = results.completenessMetrics.average / 100;
+  }
+  
+  // Normalize relationship metrics
+  if (results.relationshipMetrics) {
+    const maxPossibleRelationships = results.count.total * (results.count.total - 1);
+    results.relationshipMetrics.normalizedDensity = maxPossibleRelationships > 0
+      ? results.relationshipMetrics.totalRelationships / maxPossibleRelationships
+      : 0;
+  }
+  
+  return results;
+}
+
+function estimateRecordCount(data) {
   let count = 0;
   
-  const traverse = (obj) => {
-    if (obj === null || obj === undefined) {
-      return;
+  // Count top-level arrays
+  for (const key in data) {
+    if (Array.isArray(data[key])) {
+      count += data[key].length;
+    } else if (typeof data[key] === 'object' && data[key] !== null) {
+      // Count nested arrays
+      for (const nestedKey in data[key]) {
+        if (Array.isArray(data[key][nestedKey])) {
+          count += data[key][nestedKey].length;
+        }
+      }
     }
-    
-    if (Array.isArray(obj)) {
-      count += obj.length;
-      obj.forEach(traverse);
-    } else if (typeof obj === 'object') {
-      count++;
-      Object.values(obj).forEach(traverse);
-    } else {
-      count++;
-    }
-  };
-  
-  traverse(data);
+  }
   
   return count;
+}
+
+function convertToCsv(data, options = {}) {
+  // This would be a more sophisticated implementation in a real system
+  
+  // Handle simple case: array of objects
+  if (Array.isArray(data)) {
+    if (data.length === 0) {
+      return '';
+    }
+    
+    // Get headers from first object
+    const headers = Object.keys(data[0]);
+    
+    // Build CSV header row
+    let csv = headers.join(',') + '\n';
+    
+    // Build data rows
+    for (const item of data) {
+      const row = headers.map(header => {
+        const value = item[header];
+        
+        // Handle different value types
+        if (value === null || value === undefined) {
+          return '';
+        } else if (typeof value === 'object') {
+          return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+        } else {
+          return `"${String(value).replace(/"/g, '""')}"`;
+        }
+      });
+      
+      csv += row.join(',') + '\n';
+    }
+    
+    return csv;
+  }
+  
+  // Handle complex case: nested object
+  // For simplicity, we'll convert to a flat structure
+  const flattened = [];
+  
+  for (const key in data) {
+    if (typeof data[key] === 'object' && data[key] !== null && !Array.isArray(data[key])) {
+      flattened.push({
+        key,
+        value: JSON.stringify(data[key])
+      });
+    } else {
+      flattened.push({
+        key,
+        value: data[key]
+      });
+    }
+  }
+  
+  return convertToCsv(flattened);
+}
+
+function convertToHtml(data, options = {}) {
+  // This would be a more sophisticated implementation in a real system
+  
+  let html = '<!DOCTYPE html>\n<html>\n<head>\n';
+  html += '<meta charset="UTF-8">\n';
+  html += '<title>Analytics Report</title>\n';
+  html += '<style>\n';
+  html += 'body { font-family: Arial, sans-serif; margin: 20px; }\n';
+  html += 'table { border-collapse: collapse; width: 100%; }\n';
+  html += 'th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n';
+  html += 'th { background-color: #f2f2f2; }\n';
+  html += 'h1, h2 { color: #333; }\n';
+  html += '</style>\n';
+  html += '</head>\n<body>\n';
+  
+  html += '<h1>Analytics Report</h1>\n';
+  html += `<p>Generated on: ${new Date().toLocaleString()}</p>\n`;
+  
+  // Add summary section
+  html += '<h2>Summary</h2>\n';
+  if (data.count) {
+    html += '<table>\n<tr><th>Metric</th><th>Value</th></tr>\n';
+    html += `<tr><td>Total Artifacts</td><td>${data.count.total || 0}</td></tr>\n`;
+    
+    for (const [type, count] of Object.entries(data.count)) {
+      if (type !== 'total') {
+        html += `<tr><td>${type}</td><td>${count}</td></tr>\n`;
+      }
+    }
+    
+    html += '</table>\n';
+  }
+  
+  // Add quality metrics if available
+  if (data.qualityMetrics) {
+    html += '<h2>Quality Metrics</h2>\n';
+    html += '<table>\n<tr><th>Metric</th><th>Value</th></tr>\n';
+    html += `<tr><td>Average Quality</td><td>${data.qualityMetrics.average || 0}/100</td></tr>\n`;
+    html += `<tr><td>Minimum Quality</td><td>${data.qualityMetrics.min || 0}/100</td></tr>\n`;
+    html += `<tr><td>Maximum Quality</td><td>${data.qualityMetrics.max || 0}/100</td></tr>\n`;
+    html += '</table>\n';
+  }
+  
+  // Add relationship metrics if available
+  if (data.relationshipMetrics) {
+    html += '<h2>Relationship Metrics</h2>\n';
+    html += '<table>\n<tr><th>Metric</th><th>Value</th></tr>\n';
+    html += `<tr><td>Total Relationships</td><td>${data.relationshipMetrics.totalRelationships || 0}</td></tr>\n`;
+    html += `<tr><td>Orphaned Artifacts</td><td>${data.relationshipMetrics.orphanedArtifacts || 0}</td></tr>\n`;
+    html += '</table>\n';
+  }
+  
+  html += '</body>\n</html>';
+  return html;
+}
+
+function convertToMarkdown(data, options = {}) {
+  // This would be a more sophisticated implementation in a real system
+  
+  let markdown = '# Analytics Report\n\n';
+  markdown += `Generated on: ${new Date().toLocaleString()}\n\n`;
+  
+  // Add summary section
+  markdown += '## Summary\n\n';
+  if (data.count) {
+    markdown += '| Metric | Value |\n';
+    markdown += '|--------|-------|\n';
+    markdown += `| Total Artifacts | ${data.count.total || 0} |\n`;
+    
+    for (const [type, count] of Object.entries(data.count)) {
+      if (type !== 'total') {
+        markdown += `| ${type} | ${count} |\n`;
+      }
+    }
+    
+    markdown += '\n';
+  }
+  
+  // Add quality metrics if available
+  if (data.qualityMetrics) {
+    markdown += '## Quality Metrics\n\n';
+    markdown += '| Metric | Value |\n';
+    markdown += '|--------|-------|\n';
+    markdown += `| Average Quality | ${data.qualityMetrics.average || 0}/100 |\n`;
+    markdown += `| Minimum Quality | ${data.qualityMetrics.min || 0}/100 |\n`;
+    markdown += `| Maximum Quality | ${data.qualityMetrics.max || 0}/100 |\n\n`;
+  }
+  
+  // Add relationship metrics if available
+  if (data.relationshipMetrics) {
+    markdown += '## Relationship Metrics\n\n';
+    markdown += '| Metric | Value |\n';
+    markdown += '|--------|-------|\n';
+    markdown += `| Total Relationships | ${data.relationshipMetrics.totalRelationships || 0} |\n`;
+    markdown += `| Orphaned Artifacts | ${data.relationshipMetrics.orphanedArtifacts || 0} |\n\n`;
+  }
+  
+  return markdown;
 }
 
 module.exports = {

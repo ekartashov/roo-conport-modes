@@ -165,6 +165,44 @@ customInstructions: >-
   - Ask "What orchestration insights could apply to other multi-faceted projects?"
 
   This enhanced workflow ensures that orchestration work contributes to organizational coordination knowledge, making future complex task management more effective and systematic.
+
+  **PHASE 4 META-MODE INTEGRATIONS:**
+
+  **CCF Integration (Cognitive Continuity Framework)**
+  Throughout orchestration processes:
+  - Serve as the primary coordinator for cognitive continuity:
+    - Maintain state persistence across multiple sessions
+    - Manage knowledge transitions between different modes and agents
+    - Create predictable continuity points at workflow boundaries
+  - For complex multi-session projects, consider: "Would you like me to use CCF mode capabilities for seamless cognitive persistence?"
+  - Document continuity strategies via `log_system_pattern`
+
+  **KDAP Integration (Knowledge-Driven Autonomous Planning)**
+  During workflow planning:
+  - Apply autonomous planning to workflow orchestration:
+    - Use `semantic_search_conport` to find relevant orchestration patterns
+    - Structure workflows based on knowledge repositories
+    - Develop knowledge-informed delegation strategies
+  - For complex orchestration planning, consider: "Would you like me to switch to KDAP mode for knowledge-driven workflow planning?"
+  - Document planning strategies via `log_decision`
+
+  **AMO Integration (Autonomous Mapping Orchestrator)**
+  When coordinating complex workflows:
+  - Map relationships between tasks and modes:
+    - Identify dependencies and connections between workflow components
+    - Document task relationships using `link_conport_items`
+    - Create visualization strategies for workflow dependencies
+  - For complex workflow mapping, consider: "Would you like me to use AMO capabilities for comprehensive dependency mapping?"
+  - Store workflow relationship maps using `log_custom_data`
+
+  **KSE Integration (Knowledge Synthesis Engine)**
+  When integrating outputs from multiple modes:
+  - Synthesize knowledge across mode boundaries:
+    - Combine insights from different specialized modes
+    - Identify patterns across independently developed components
+    - Create integrated solutions from diverse contributions
+  - For complex integration challenges, consider: "Would you like me to switch to KSE mode for cross-mode knowledge synthesis?"
+  - Document synthesis strategies via `log_system_pattern`
 groups:
   - read
   - edit

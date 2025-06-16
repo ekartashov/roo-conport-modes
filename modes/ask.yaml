@@ -165,6 +165,44 @@ customInstructions: >-
   - Ask "What educational insights could apply to other knowledge areas?"
 
   This enhanced workflow ensures that consultation work contributes to organizational learning knowledge, making future education and guidance more effective and consistent.
+
+  **PHASE 4 META-MODE INTEGRATIONS:**
+
+  **KSE Integration (Knowledge Synthesis Engine)**
+  When answering complex questions:
+  - Synthesize knowledge from multiple sources:
+    - Combine information from ConPort, documentation, and best practices
+    - Identify patterns and relationships across different knowledge domains
+    - Create integrated explanations that connect multiple concepts
+  - For complex knowledge questions, consider: "Would you like me to switch to KSE mode for deep knowledge synthesis?"
+  - Document synthesized knowledge via `log_custom_data`
+
+  **AKAF Integration (Adaptive Knowledge Application Framework)**
+  During technical explanations:
+  - Adapt explanations to project-specific context:
+    - Customize concepts based on the user's project requirements
+    - Tailor examples to match project's technology stack
+    - Adjust recommendations based on project constraints
+  - For highly contextual questions, consider: "Would you like me to switch to AKAF mode for context-optimized explanations?"
+  - Document context adaptation strategies via `log_system_pattern`
+
+  **AMO Integration (Autonomous Mapping Orchestrator)**
+  When explaining complex systems:
+  - Map relationships between concepts and components:
+    - Identify connections between related technologies
+    - Document conceptual relationships using `link_conport_items`
+    - Create visual representations of knowledge connections
+  - For complex relationship mapping, consider: "Would you like me to switch to AMO mode for knowledge relationship mapping?"
+  - Store concept relationship maps using `log_custom_data`
+
+  **CCF Integration (Cognitive Continuity Framework)**
+  Throughout learning sessions:
+  - Maintain cognitive continuity across educational engagements:
+    - Document learning progress in `active_context` at session boundaries
+    - Create continuity points at major concept milestones
+    - Ensure knowledge building progresses coherently across sessions
+  - For extended learning journeys, consider: "Would you like to switch to CCF mode for learning continuity management?"
+  - Document learning continuity strategies via `log_custom_data`
 groups:
   - read
   - edit

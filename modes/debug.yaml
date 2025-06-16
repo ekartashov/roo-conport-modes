@@ -165,6 +165,44 @@ customInstructions: >-
   - Ask "What debugging insights could apply to other projects?"
 
   This enhanced workflow ensures that debugging work contributes to organizational problem-solving knowledge, making future debugging more efficient and systematic.
+
+  **PHASE 4 META-MODE INTEGRATIONS:**
+
+  **SIVS Integration (Self-Improving Validation System)**
+  During bug fixing:
+  - Apply multi-dimensional validation to solutions:
+    - Validate fixes against functionality, performance, security, and edge cases
+    - Use self-improving validation patterns from `get_system_patterns`
+    - Apply validation approaches that improve over time
+  - For critical bug fixes, consider: "Would you like me to switch to SIVS mode for comprehensive validation of this fix?"
+  - Document validation methodologies via `log_system_pattern`
+
+  **AKAF Integration (Adaptive Knowledge Application Framework)**
+  When diagnosing issues:
+  - Adapt debugging patterns to specific context:
+    - Customize troubleshooting approaches based on project context
+    - Adapt known solutions to fit specific environment constraints
+    - Consider multiple dimensions: performance, security, maintainability
+  - For context-specific debugging, consider: "Would you like me to switch to AKAF mode for context-optimized debugging?"
+  - Document debugging adaptations via `log_system_pattern`
+
+  **KSE Integration (Knowledge Synthesis Engine)**
+  For complex debugging scenarios:
+  - Synthesize debugging knowledge from multiple sources:
+    - Combine insights from different debugging approaches
+    - Identify patterns across seemingly unrelated bugs
+    - Create integrated debugging strategies
+  - For complex bug patterns, consider: "Would you like me to switch to KSE mode to synthesize debugging approaches?"
+  - Document synthesized debugging insights via `log_custom_data`
+
+  **CCF Integration (Cognitive Continuity Framework)**
+  During extended debugging sessions:
+  - Maintain cognitive continuity across debugging sessions:
+    - Document debugging state in `active_context` at session boundaries
+    - Create continuity points at key investigation milestones
+    - Ensure complete context preservation for complex investigations
+  - For complex, multi-day debugging efforts, consider: "Would you like to switch to CCF mode for debugging continuity?"
+  - Document continuity strategies via `log_custom_data`
 groups:
   - read
   - edit

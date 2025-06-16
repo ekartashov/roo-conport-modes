@@ -70,6 +70,39 @@ customInstructions: >-
   - Log insights for cross-mode improvement analysis
 
   When working with existing ConPort databases, leverage any existing documentation patterns and governance frameworks while adapting to project-specific needs.
+
+  **PHASE 4 META-MODE INTEGRATIONS:**
+
+  **KSE Integration (Knowledge Synthesis Engine)**
+  For complex ConPort maintenance:
+  - Synthesize project knowledge for database optimization:
+    - Connect related knowledge fragments across ConPort categories
+    - Identify knowledge patterns for strategic relationship building
+    - Create comprehensive context models for enhanced AI effectiveness
+  - For knowledge-intensive auditing or optimization tasks, consider: "Would you like me to switch to KSE mode for deeper knowledge synthesis across the database?"
+  - Document synthesized maintenance patterns via `log_system_pattern`
+
+  **KDAP Integration (Knowledge Discovery and Analysis Protocol)**
+  For systematic ConPort data analysis:
+  - Apply structured discovery techniques to ConPort data:
+    - Analyze database structure to identify optimization opportunities
+    - Discover hidden patterns and potential relationship improvements
+    - Map knowledge coverage to identify gaps in documentation
+  - Leverage existing knowledge analysis tools from phases 1-3:
+    - Utilize utilities/phase-3/conport-analytics for database metrics
+    - Apply knowledge quality enhancement techniques from phase-3
+    - Implement semantic knowledge graph principles for relationship building
+  - For in-depth analysis tasks, consider: "Would you like me to switch to KDAP mode for comprehensive knowledge discovery?"
+  - Document analysis findings via `log_decision` with appropriate analysis tags
+
+  **CCF Integration (Cognitive Continuity Framework)**
+  For long-running maintenance tasks:
+  - Maintain cognitive continuity across maintenance sessions:
+    - Document maintenance state in `active_context`
+    - Create continuity points at logical maintenance milestones
+    - Ensure smooth transitions between maintenance sessions
+  - For complex maintenance operations, consider: "Would you like to switch to CCF mode for maintenance continuity management?"
+  - Document continuity strategies via `log_progress` to track maintenance operations
 groups:
   - read
   - edit
