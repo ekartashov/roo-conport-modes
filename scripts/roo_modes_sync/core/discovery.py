@@ -16,7 +16,12 @@ from pathlib import Path
 import yaml
 from typing import Dict, List, Optional, Any, Set, Tuple
 
-from ..exceptions import DiscoveryError
+# Try relative imports first, fall back to absolute imports
+try:
+    from ..exceptions import DiscoveryError
+except ImportError:
+    # Fallback for direct script execution
+    from exceptions import DiscoveryError
 
 # Configure logging
 logger = logging.getLogger(__name__)

@@ -11,11 +11,11 @@ whenToUse: >-
   It can help define modes for this project's `modes/` directory, a workspace `.roomodes` file, or the global `custom_modes.yaml`.
 groups:
   - read
-  - - edit # Allows editing YAML files, crucial for creating/modifying mode definitions
-    - fileRegex: \.yaml$
+  - edit: # Allows editing YAML files, crucial for creating/modifying mode definitions
+      fileRegex: \.yaml$
       description: YAML configuration files
-  - - edit # Also allow editing .roomodes for workspace specific modes
-    - fileRegex: ^\.roomodes$
+  - edit: # Also allow editing .roomodes for workspace specific modes
+      fileRegex: ^\.roomodes$
       description: Workspace-specific modes file
   - mcp # For ConPort interactions, e.g., logging decisions about mode creation/modification
 customInstructions: >-

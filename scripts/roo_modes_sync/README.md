@@ -11,6 +11,7 @@ Roo Modes Sync provides a flexible and extensible system for managing Roo assist
 - **Dynamic discovery**: Automatically find and categorize available modes
 - **Validation**: Ensure mode configurations meet required standards
 - **Flexible ordering**: Multiple strategies for arranging modes in a meaningful sequence
+- **Backup and restore**: Safeguard configuration changes with automatic backup functionality
 - **MCP integration**: Integrate with AI assistants through the Model Context Protocol
 
 ## Directory Structure
@@ -24,7 +25,8 @@ scripts/
 │   │   ├── discovery.py      # Mode discovery and categorization
 │   │   ├── validation.py     # Configuration validation
 │   │   ├── ordering.py       # Ordering strategies
-│   │   └── sync.py           # Main synchronization logic
+│   │   ├── sync.py           # Main synchronization logic
+│   │   └── backup.py         # Backup and restore functionality
 │   ├── cli.py                # Command-line interface
 │   ├── mcp.py                # Model Context Protocol server
 │   ├── exceptions.py         # Custom exceptions
@@ -80,6 +82,57 @@ roo-modes sync-local /path/to/project --strategy alphabetical
 
 # Dry run to see what would be done
 roo-modes sync-local /path/to/project --dry-run
+```
+
+#### Backup and Restore
+
+Create backups of configuration files before synchronization:
+
+```bash
+# Create backup of all configuration files
+roo-modes backup
+
+# Create backup of specific type (local, global, or both)
+roo-modes backup --type local
+roo-modes backup --type global
+roo-modes backup --type both
+
+# Restore from backup (restores latest backup by default)
+roo-modes restore
+
+# Restore specific backup by number
+roo-modes restore --backup-number 3
+
+# Restore specific type from backup
+roo-modes restore --type local --backup-number 2
+
+# List all available backups
+roo-modes list-backups
+```
+
+Example backup output:
+```
+Created backup: cache/roo_modes_local_backup/.roomodes_1
+Created backup: cache/roo_modes_global_backup/.roomodes_2
+Created backup: cache/roo_modes_global_backup/custom_modes_1.yaml
+Successfully created 3 backups
+```
+
+Example backup listing:
+```
+Available backups:
+
+Local .roomodes files:
+  1. .roomodes_1 (1.2KB) - 2025-01-15 14:30:22
+  2. .roomodes_2 (1.3KB) - 2025-01-15 15:45:10
+
+Global .roomodes files:
+  1. .roomodes_1 (2.1KB) - 2025-01-15 14:30:22
+  2. .roomodes_2 (2.2KB) - 2025-01-15 15:45:10
+
+Custom modes YAML files:
+  1. custom_modes_1.yaml (512B) - 2025-01-15 14:30:22
+  2. custom_modes_2.yaml (520B) - 2025-01-15 15:45:10
 ```
 
 #### Listing Modes
@@ -175,6 +228,43 @@ sync.backup_existing_config()
 mode_config = sync.load_mode_config("code")
 ```
 
+#### Backup Management
+
+```python
+from pathlib import Path
+from scripts.roo_modes_sync.core.backup import BackupManager
+
+# Initialize backup manager
+project_root = Path("/path/to/project")
+backup_manager = BackupManager(project_root)
+
+# Create backups of all configuration files
+backup_paths = backup_manager.backup_all()
+print(f"Created {len(backup_paths)} backups")
+
+# Create backup of specific file type
+local_backup = backup_manager.backup_local_roomodes()
+global_backup = backup_manager.backup_global_roomodes()
+custom_backup = backup_manager.backup_custom_modes()
+
+# List available backups
+backups = backup_manager.list_available_backups()
+print(f"Local backups: {len(backups['local_roomodes'])}")
+print(f"Global backups: {len(backups['global_roomodes'])}")
+print(f"Custom modes backups: {len(backups['custom_modes'])}")
+
+# Restore from latest backup
+try:
+    restored_path = backup_manager.restore_local_roomodes()
+    print(f"Restored: {restored_path}")
+except BackupError as e:
+    print(f"Restore failed: {e}")
+
+# Restore specific backup by path
+backup_path = Path("cache/roo_modes_local_backup/.roomodes_2")
+restored_path = backup_manager.restore_from_backup(backup_path, ".roomodes")
+```
+
 ## Configuration
 
 ### Ordering Strategies
@@ -236,6 +326,28 @@ Groups can be configured in two ways:
        description: Python files
    ```
 
+### Backup Directory Structure
+
+The backup system creates the following directory structure in your project:
+
+```
+project_root/
+├── cache/
+│   ├── roo_modes_local_backup/     # Local .roomodes backups
+│   │   ├── .roomodes_1
+│   │   ├── .roomodes_2
+│   │   └── ...
+│   └── roo_modes_global_backup/    # Global config backups
+│       ├── .roomodes_1
+│       ├── .roomodes_2
+│       ├── custom_modes_1.yaml
+│       ├── custom_modes_2.yaml
+│       └── ...
+└── .roomodes                       # Local mode configuration (if exists)
+```
+
+Backup files use sequential numbering (1, 2, 3, etc.) and preserve the original file extensions. The backup system automatically creates the cache directories when needed.
+
 ### Environment Variables
 
 - `ROO_MODES_DIR`: Path to the directory containing mode YAML files
@@ -244,11 +356,16 @@ Groups can be configured in two ways:
 
 Roo Modes Sync provides MCP server capabilities for integration with AI assistants that support the Model Context Protocol. The MCP server exposes the following tools:
 
+### Core Tools
 - `sync_modes`: Synchronize Roo modes to a target directory
 - `get_sync_status`: Get current sync status with mode information
 
-And the following resources:
+### Backup Tools
+- `backup_modes`: Create backup of configuration files
+- `restore_modes`: Restore configuration from backup
+- `list_backups`: List all available backup files
 
+### Resources
 - `modes/{mode_slug}`: Access to individual mode configuration
 
 #### MCP Usage Examples
@@ -325,7 +442,117 @@ Example 2: Getting sync status via MCP:
 }
 ```
 
-Example 3: Accessing a specific mode configuration:
+Example 3: Creating backups via MCP:
+
+```json
+// Request
+{
+  "type": "tool_call",
+  "tool": {
+    "name": "backup_modes",
+    "arguments": {
+      "target": "both"
+    }
+  }
+}
+
+// Response
+{
+  "type": "tool_call_response",
+  "content": {
+    "result": {
+      "success": true,
+      "backup_paths": [
+        "cache/roo_modes_local_backup/.roomodes_1",
+        "cache/roo_modes_global_backup/.roomodes_2",
+        "cache/roo_modes_global_backup/custom_modes_1.yaml"
+      ],
+      "message": "Successfully created 3 backups"
+    }
+  }
+}
+```
+
+Example 4: Restoring from backup via MCP:
+
+```json
+// Request
+{
+  "type": "tool_call",
+  "tool": {
+    "name": "restore_modes",
+    "arguments": {
+      "backup_number": 2,
+      "target": "local"
+    }
+  }
+}
+
+// Response
+{
+  "type": "tool_call_response",
+  "content": {
+    "result": {
+      "success": true,
+      "restored_files": [
+        "/path/to/project/.roomodes"
+      ],
+      "message": "Successfully restored 1 files"
+    }
+  }
+}
+```
+
+Example 5: Listing backups via MCP:
+
+```json
+// Request
+{
+  "type": "tool_call",
+  "tool": {
+    "name": "list_backups",
+    "arguments": {}
+  }
+}
+
+// Response
+{
+  "type": "tool_call_response",
+  "content": {
+    "result": {
+      "local_roomodes": [
+        {
+          "number": 1,
+          "path": "cache/roo_modes_local_backup/.roomodes_1",
+          "size": "1.2KB",
+          "file_type": "local_roomodes",
+          "mtime": "2025-01-15 14:30:22"
+        }
+      ],
+      "global_roomodes": [
+        {
+          "number": 1,
+          "path": "cache/roo_modes_global_backup/.roomodes_1",
+          "size": "2.1KB",
+          "file_type": "global_roomodes",
+          "mtime": "2025-01-15 14:30:22"
+        }
+      ],
+      "custom_modes": [
+        {
+          "number": 1,
+          "path": "cache/roo_modes_global_backup/custom_modes_1.yaml",
+          "size": "512B",
+          "file_type": "custom_modes",
+          "mtime": "2025-01-15 14:30:22"
+        }
+      ]
+    }
+  }
+}
+```
+
+Example 6: Accessing a specific mode configuration:
 
 ```json
 // Request
@@ -358,6 +585,7 @@ The codebase is organized in a modular architecture with clear separation of con
   - `core/validation.py`: Ensuring mode configurations are valid
   - `core/ordering.py`: Arranging modes in a specific order
   - `core/sync.py`: Main synchronization functionality
+  - `core/backup.py`: Backup and restore functionality
 
 - **Interfaces**:
   - `cli.py`: Command line interface
@@ -377,7 +605,8 @@ The codebase is organized in a modular architecture with clear separation of con
   - **CustomOrderingStrategy**: Orders by explicit custom list
 - **OrderingStrategyFactory**: Creates the appropriate ordering strategy
 - **ModeSync**: Main class that orchestrates the synchronization process
-- **ModesMCPServer**: Implements the MCP server interface
+- **BackupManager**: Handles backup and restore operations for configuration files
+- **ModesMCPServer**: Implements the MCP server interface with backup integration
 
 ## Development
 
@@ -450,6 +679,15 @@ If the MCP server is not working as expected:
 - Check if the server is running (`roo-modes serve`)
 - Verify the client is sending properly formatted MCP requests
 - Look for error messages in the server output
+
+#### Backup and restore issues
+
+If backup or restore operations are failing:
+- Ensure the project root directory exists and is writable
+- Check if the cache directories (`cache/roo_modes_local_backup`, `cache/roo_modes_global_backup`) can be created
+- Verify that source files exist before attempting backup
+- For restore operations, ensure backup files exist using `roo-modes list-backups`
+- Check file permissions on backup and target directories
 
 ### Debug Logging
 

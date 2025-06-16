@@ -16,10 +16,20 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union, Tuple
 
-from ..exceptions import SyncError, ConfigurationError
-from .discovery import ModeDiscovery
-from .validation import ModeValidator, ValidationLevel, ValidationResult
-from .ordering import OrderingStrategyFactory
+# Try relative imports first, fall back to absolute imports
+try:
+    from ..exceptions import SyncError, ConfigurationError
+    from .discovery import ModeDiscovery
+    from .validation import ModeValidator, ValidationLevel, ValidationResult
+    from .ordering import OrderingStrategyFactory
+    from .backup import BackupManager, BackupError
+except ImportError:
+    # Fallback for direct script execution
+    from exceptions import SyncError, ConfigurationError
+    from discovery import ModeDiscovery
+    from validation import ModeValidator, ValidationLevel, ValidationResult
+    from ordering import OrderingStrategyFactory
+    from backup import BackupManager, BackupError
 
 
 # Configure logging
@@ -72,6 +82,7 @@ class ModeSync:
         self.local_config_path = None
         self.discovery = ModeDiscovery(self.modes_dir)
         self.validator = ModeValidator()
+        self.backup_manager = None  # Will be initialized when needed
         
         # Set validation level from environment if specified
         if self.ENV_VALIDATION_LEVEL in os.environ:
@@ -140,6 +151,23 @@ class ModeSync:
         self.local_config_path = config_dir / self.LOCAL_CONFIG_FILE
         self.global_config_path = None  # Reset global path
         logger.debug(f"Set local config path: {self.local_config_path}")
+        
+        # Initialize backup manager for local projects
+        self._init_backup_manager(project_dir)
+        
+    def _init_backup_manager(self, project_dir: Path) -> None:
+        """
+        Initialize the backup manager for the given project directory.
+        
+        Args:
+            project_dir: Path to the project directory
+        """
+        try:
+            self.backup_manager = BackupManager(project_dir)
+            logger.debug(f"Initialized backup manager for {project_dir}")
+        except Exception as e:
+            logger.warning(f"Failed to initialize backup manager: {e}")
+            self.backup_manager = None
         
     def validate_target_directory(self, directory: Path) -> bool:
         """
@@ -234,7 +262,10 @@ class ModeSync:
                 # Standard validation without warning collection
                 self.validator.validate_mode_config(config, str(mode_file))
                 
-            # Ensure source is set to 'global'
+            # Strip development metadata to create clean Roo-compatible config
+            config = self.validator.strip_development_metadata(config)
+            
+            # Ensure source is set to 'global' for sync output
             config['source'] = 'global'
             
             logger.debug(f"Successfully loaded and validated mode: {slug}")
@@ -333,7 +364,8 @@ class ModeSync:
     
     def backup_existing_config(self) -> bool:
         """
-        Create a backup of the existing config if it exists.
+        Create a backup of the existing config if it exists using BackupManager.
+        Falls back to simple backup if BackupManager is not available.
         
         Returns:
             True if backup succeeded or wasn't needed, False if backup failed
@@ -349,18 +381,30 @@ class ModeSync:
             logger.error(error_msg)
             raise SyncError(error_msg)
             
-        if config_path.exists() and config_path.stat().st_size > 0:
-            backup_path = config_path.with_suffix('.yaml.backup')
+        # If file doesn't exist or is empty, no backup needed
+        if not config_path.exists() or config_path.stat().st_size == 0:
+            return True
+            
+        # Try to use BackupManager for structured backups
+        if self.backup_manager and self.local_config_path:
             try:
-                shutil.copy2(config_path, backup_path)
-                logger.info(f"Created backup: {backup_path}")
+                backup_path = self.backup_manager.backup_local_roomodes()
+                logger.info(f"Created BackupManager backup: {backup_path}")
                 return True
-            except Exception as e:
-                error_msg = f"Could not create backup: {e}"
-                logger.error(error_msg)
-                raise SyncError(error_msg)
+            except BackupError as e:
+                logger.warning(f"BackupManager backup failed, falling back to simple backup: {e}")
+                # Fall through to simple backup
         
-        return True
+        # Fall back to simple backup for global configs or when BackupManager fails
+        backup_path = config_path.with_suffix('.yaml.backup')
+        try:
+            shutil.copy2(config_path, backup_path)
+            logger.info(f"Created simple backup: {backup_path}")
+            return True
+        except Exception as e:
+            error_msg = f"Could not create backup: {e}"
+            logger.error(error_msg)
+            raise SyncError(error_msg)
     
     def write_config(self, config: Dict[str, Any]) -> bool:
         """

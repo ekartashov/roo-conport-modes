@@ -259,8 +259,8 @@ customInstructions: |
 
 groups:
   - read
-  - - edit
-    - fileRegex: ^(modes|templates|docs|examples|utilities/(modes|frameworks/mode-engineer)).*$
+  - edit:
+      fileRegex: ^(modes|templates|docs|examples|utilities/(modes|frameworks/mode-engineer)).*$
       description: Mode engineering files (modes, templates, docs, examples, utilities)
   - browser
   - command

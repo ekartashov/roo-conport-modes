@@ -5,6 +5,8 @@ Mode configuration validation functionality.
 
 import re
 import enum
+import yaml
+from pathlib import Path
 from typing import Dict, Any, List, Union, Optional, Set
 
 
@@ -52,6 +54,11 @@ class ModeValidationError(Exception):
     pass
 
 
+class YAMLStructureError(Exception):
+    """Error raised when YAML structure validation fails."""
+    pass
+
+
 class ModeValidator:
     """Validates mode configuration file contents."""
     
@@ -59,8 +66,12 @@ class ModeValidator:
     REQUIRED_FIELDS = ['slug', 'name', 'roleDefinition', 'groups']
     OPTIONAL_FIELDS = ['whenToUse', 'customInstructions']
     VALID_TOP_LEVEL_FIELDS = REQUIRED_FIELDS + OPTIONAL_FIELDS
-    VALID_SIMPLE_GROUPS = ['read', 'edit', 'browser']
+    VALID_SIMPLE_GROUPS = ['read', 'edit', 'browser', 'command', 'mcp']
     SLUG_PATTERN = r'^[a-z0-9]+(-[a-z0-9]+)*$'
+    
+    # Development metadata fields that are allowed but stripped during sync
+    DEVELOPMENT_METADATA_FIELDS = ['source', 'model']
+    ENHANCED_VALID_TOP_LEVEL_FIELDS = VALID_TOP_LEVEL_FIELDS + DEVELOPMENT_METADATA_FIELDS
     
     def __init__(self):
         """Initialize the validator with default settings."""
@@ -119,8 +130,8 @@ class ModeValidator:
             else:
                 raise ModeValidationError(error_msg)
         
-        # Check for unexpected top-level properties
-        unexpected_fields = [field for field in config if field not in self.VALID_TOP_LEVEL_FIELDS]
+        # Check for unexpected top-level properties (using enhanced list that includes dev metadata)
+        unexpected_fields = [field for field in config if field not in self.ENHANCED_VALID_TOP_LEVEL_FIELDS]
         if unexpected_fields:
             error_msg = f"Unexpected properties in {filename}: {', '.join(unexpected_fields)}"
             if self.validation_level == ValidationLevel.STRICT:
@@ -245,11 +256,13 @@ class ModeValidator:
             if isinstance(group_item, str):
                 self._validate_simple_group(group_item, filename)
             elif isinstance(group_item, list):
-                self._validate_complex_group(group_item, filename)
+                self._validate_complex_group_array(group_item, filename)
+            elif isinstance(group_item, dict):
+                self._validate_complex_group_object(group_item, filename)
             else:
                 raise ModeValidationError(
                     f"Invalid group item in {filename}: {group_item}. "
-                    f"Must be a string or array."
+                    f"Must be a string, array, or object."
                 )
     
     def _validate_simple_group(self, group_name: str, filename: str) -> None:
@@ -269,7 +282,7 @@ class ModeValidator:
                 f"Valid simple groups are: {', '.join(self.VALID_SIMPLE_GROUPS)}"
             )
     
-    def _validate_complex_group(self, complex_group: List, filename: str) -> None:
+    def _validate_complex_group_array(self, complex_group: List, filename: str) -> None:
         """
         Validate a complex group configuration.
         
@@ -331,6 +344,74 @@ class ModeValidator:
                 )
             # Otherwise, we'll let it pass (NORMAL or PERMISSIVE levels)
     
+    def _validate_complex_group_object(self, complex_group: Dict, filename: str) -> None:
+        """
+        Validate a complex group configuration using the new object syntax.
+        
+        This validates the correct YAML structure: {edit: {fileRegex: ..., description: ...}}
+        
+        Args:
+            complex_group: Complex group configuration object
+            filename: Source filename (for error messages)
+            
+        Raises:
+            ModeValidationError: If validation fails
+        """
+        # Must have exactly one key
+        if len(complex_group) != 1:
+            raise ModeValidationError(
+                f"Complex group in {filename} must have exactly one key, got {len(complex_group)} keys: {list(complex_group.keys())}"
+            )
+        
+        # Get the group name (the key) and config (the value)
+        group_name = list(complex_group.keys())[0]
+        group_config = complex_group[group_name]
+        
+        # Group name must be valid
+        if group_name not in self.VALID_SIMPLE_GROUPS:
+            raise ModeValidationError(
+                f"Invalid group name '{group_name}' in complex group in {filename}. "
+                f"Valid group names are: {', '.join(self.VALID_SIMPLE_GROUPS)}"
+            )
+        
+        # Group config must be an object
+        if not isinstance(group_config, dict):
+            raise ModeValidationError(
+                f"Complex group config for '{group_name}' must be an object in {filename}, got {type(group_config).__name__}"
+            )
+        
+        # Must have fileRegex property
+        if 'fileRegex' not in group_config:
+            raise ModeValidationError(
+                f"Complex group config for '{group_name}' must have 'fileRegex' property in {filename}"
+            )
+        
+        # fileRegex must be a valid regex string
+        file_regex = group_config['fileRegex']
+        if not isinstance(file_regex, str):
+            raise ModeValidationError(
+                f"'fileRegex' must be a string in {filename}, got {type(file_regex).__name__}"
+            )
+        
+        # Check that the regex is valid
+        try:
+            re.compile(file_regex)
+        except re.error:
+            raise ModeValidationError(
+                f"Invalid regex pattern '{file_regex}' in {filename}"
+            )
+        
+        # Check for unexpected properties
+        valid_config_props = ['fileRegex', 'description']
+        unexpected_props = [prop for prop in group_config if prop not in valid_config_props]
+        if unexpected_props:
+            if self.validation_level == ValidationLevel.STRICT:
+                raise ModeValidationError(
+                    f"Unexpected properties in complex group config for '{group_name}' in {filename}: "
+                    f"{', '.join(unexpected_props)}"
+                )
+            # Otherwise, we'll let it pass (NORMAL or PERMISSIVE levels)
+    
     def _validate_against_extended_schema(self, config: Dict[str, Any], schema: Dict[str, Any], filename: str) -> None:
         """
         Validate a config against an extended schema.
@@ -372,3 +453,250 @@ class ModeValidator:
                             raise ModeValidationError(
                                 f"Missing required fields in '{prop_name}' in {filename}: {', '.join(missing)}"
                             )
+    
+    def get_development_metadata_fields(self) -> List[str]:
+        """
+        Get the list of development metadata fields that are allowed but stripped during sync.
+        
+        Returns:
+            List of development metadata field names
+        """
+        return self.DEVELOPMENT_METADATA_FIELDS.copy()
+    
+    def strip_development_metadata(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Strip development metadata fields from a configuration, returning a clean Roo-compatible config.
+        
+        Args:
+            config: Mode configuration dictionary (potentially containing development metadata)
+            
+        Returns:
+            Configuration dictionary with development metadata fields removed
+        """
+        stripped_config = {}
+        
+        for key, value in config.items():
+            if key not in self.DEVELOPMENT_METADATA_FIELDS:
+                stripped_config[key] = value
+        
+        return stripped_config
+    
+    def validate_yaml_structure(self, file_path: str, collect_warnings: bool = False) -> Union[bool, ValidationResult]:
+        """
+        Validate the YAML structure of a mode file, specifically checking for malformed groups.
+        
+        This method checks for YAML parsing errors and structural issues like double-nested
+        arrays in the groups section that cause the malformed YAML we've encountered.
+        
+        Args:
+            file_path: Path to the YAML file to validate
+            collect_warnings: If True, return ValidationResult with warnings
+            
+        Returns:
+            If collect_warnings is False: True if valid
+            If collect_warnings is True: ValidationResult object
+            
+        Raises:
+            YAMLStructureError: If YAML structure validation fails
+        """
+        result = ValidationResult(valid=True)
+        
+        try:
+            # Check if file exists
+            if not Path(file_path).exists():
+                error_msg = f"File not found: {file_path}"
+                if collect_warnings:
+                    result.valid = False
+                    result.add_warning(error_msg, "error")
+                    return result
+                else:
+                    raise YAMLStructureError(error_msg)
+            
+            # Read and parse YAML
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                
+            # Check for empty content
+            if not content:
+                error_msg = f"YAML file is empty: {file_path}"
+                if collect_warnings:
+                    result.valid = False
+                    result.add_warning(error_msg, "error")
+                    return result
+                else:
+                    raise YAMLStructureError(error_msg)
+            
+            # Parse YAML
+            try:
+                parsed_yaml = yaml.safe_load(content)
+            except yaml.YAMLError as e:
+                error_msg = f"YAML parsing error in {file_path}: {str(e)}"
+                if collect_warnings:
+                    result.valid = False
+                    result.add_warning(error_msg, "error")
+                    return result
+                else:
+                    raise YAMLStructureError(error_msg)
+            
+            # Check if parsed content is a dictionary
+            if not isinstance(parsed_yaml, dict):
+                error_msg = f"YAML content must be a dictionary in {file_path}"
+                if collect_warnings:
+                    result.valid = False
+                    result.add_warning(error_msg, "error")
+                    return result
+                else:
+                    raise YAMLStructureError(error_msg)
+            
+            # Check for malformed groups structure if groups exist
+            if 'groups' in parsed_yaml and isinstance(parsed_yaml['groups'], list):
+                groups_issues = self._detect_malformed_groups_structure(parsed_yaml['groups'])
+                if groups_issues:
+                    error_msg = f"Malformed groups structure in {file_path}: {'; '.join(groups_issues)}"
+                    if collect_warnings:
+                        result.valid = False
+                        result.add_warning(error_msg, "error")
+                        return result
+                    else:
+                        raise YAMLStructureError(error_msg)
+            
+            # If we get here, YAML structure is valid
+            if collect_warnings:
+                return result
+            else:
+                return True
+                
+        except (IOError, OSError) as e:
+            error_msg = f"Error reading file {file_path}: {str(e)}"
+            if collect_warnings:
+                result.valid = False
+                result.add_warning(error_msg, "error")
+                return result
+            else:
+                raise YAMLStructureError(error_msg)
+    
+    def _detect_malformed_groups_structure(self, groups: List[Any]) -> List[str]:
+        """
+        Detect malformed groups structure, specifically double-nested arrays.
+        
+        This method identifies the specific YAML formatting issues we've encountered:
+        - Double-nested arrays like `- - edit` instead of `- edit:`
+        - Complex group arrays that should be objects
+        
+        Args:
+            groups: The groups list from parsed YAML
+            
+        Returns:
+            List of issue descriptions (empty if no issues found)
+        """
+        issues = []
+        
+        for i, group_item in enumerate(groups):
+            # Check for double-nested arrays (the main issue we're fixing)
+            if isinstance(group_item, list):
+                # This is the problematic structure: a list within the groups list
+                # Examples: `- - edit`, `- - command`
+                issues.append(
+                    f"Double-nested array at groups[{i}]: {group_item}. "
+                    f"Should be a simple string like 'edit' or a complex object like "
+                    f"'{{'edit': {{'fileRegex': '...'}}}}'"
+                )
+            
+            # Additional check: if it's a dict, ensure it follows proper complex group format
+            elif isinstance(group_item, dict):
+                # Complex groups should have exactly one key that is a valid group name
+                if len(group_item) != 1:
+                    issues.append(
+                        f"Complex group at groups[{i}] should have exactly one key: {group_item}"
+                    )
+                else:
+                    group_name = list(group_item.keys())[0]
+                    if group_name not in self.VALID_SIMPLE_GROUPS:
+                        issues.append(
+                            f"Invalid group name '{group_name}' in complex group at groups[{i}]"
+                        )
+            
+            # Simple string groups are always valid (we validate the names elsewhere)
+            elif isinstance(group_item, str):
+                continue
+            
+            # Any other type is invalid
+            else:
+                issues.append(
+                    f"Invalid group item type at groups[{i}]: {type(group_item).__name__}. "
+                    f"Must be string, list array (for complex groups), or object."
+                )
+        
+        return issues
+    
+    def validate_mode_file(self, file_path: str, collect_warnings: bool = False,
+                          extensions: Optional[List[str]] = None) -> Union[bool, ValidationResult]:
+        """
+        Validate a complete mode file, including both YAML structure and mode configuration.
+        
+        This method first validates the YAML structure, then validates the mode configuration.
+        
+        Args:
+            file_path: Path to the mode file to validate
+            collect_warnings: If True, return ValidationResult with warnings
+            extensions: List of extension schemas to apply
+            
+        Returns:
+            If collect_warnings is False: True if valid
+            If collect_warnings is True: ValidationResult object
+            
+        Raises:
+            YAMLStructureError: If YAML structure validation fails
+            ModeValidationError: If mode configuration validation fails
+        """
+        # First validate YAML structure
+        yaml_result = self.validate_yaml_structure(file_path, collect_warnings=collect_warnings)
+        
+        if collect_warnings and isinstance(yaml_result, ValidationResult):
+            if not yaml_result.valid:
+                return yaml_result
+        elif not yaml_result:
+            # Should not reach here since validate_yaml_structure raises exception on failure
+            # when collect_warnings=False, but just in case
+            return False
+        
+        # If YAML structure is valid, load and validate mode configuration
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                parsed_yaml = yaml.safe_load(f)
+            
+            # Validate mode configuration
+            filename = Path(file_path).name
+            mode_result = self.validate_mode_config(
+                parsed_yaml, filename, collect_warnings=collect_warnings, extensions=extensions
+            )
+            
+            if collect_warnings:
+                # Combine results if both use ValidationResult
+                if isinstance(yaml_result, ValidationResult) and isinstance(mode_result, ValidationResult):
+                    combined_result = ValidationResult(
+                        valid=yaml_result.valid and mode_result.valid,
+                        warnings=yaml_result.warnings + mode_result.warnings
+                    )
+                    return combined_result
+                else:
+                    return mode_result
+            else:
+                return mode_result
+                
+        except (IOError, OSError) as e:
+            error_msg = f"Error reading file {file_path}: {str(e)}"
+            if collect_warnings:
+                result = ValidationResult(valid=False)
+                result.add_warning(error_msg, "error")
+                return result
+            else:
+                raise YAMLStructureError(error_msg)
+        except yaml.YAMLError as e:
+            error_msg = f"YAML parsing error in {file_path}: {str(e)}"
+            if collect_warnings:
+                result = ValidationResult(valid=False)
+                result.add_warning(error_msg, "error")
+                return result
+            else:
+                raise YAMLStructureError(error_msg)

@@ -16,9 +16,24 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Union
 
-from .core.sync import ModeSync
-from .exceptions import SyncError
-from .mcp import run_mcp_server
+# Handle both direct execution and module imports
+try:
+    from .core.sync import ModeSync
+    from .core.backup import BackupManager, BackupError
+    from .exceptions import SyncError
+    from .mcp import run_mcp_server
+except ImportError:
+    # Direct execution - adjust path and import
+    import sys
+    from pathlib import Path
+    script_dir = Path(__file__).resolve().parent
+    sys.path.insert(0, str(script_dir))
+    sys.path.insert(0, str(script_dir / "core"))
+    
+    from core.sync import ModeSync
+    from core.backup import BackupManager, BackupError
+    from exceptions import SyncError
+    from mcp import run_mcp_server
 
 # Set up logging
 logging.basicConfig(
@@ -188,6 +203,197 @@ def serve_mcp(args: argparse.Namespace) -> int:
         return 1
 
 
+def backup_files(args: argparse.Namespace) -> int:
+    """
+    Create backups of configuration files.
+    
+    Args:
+        args: Command line arguments
+        
+    Returns:
+        Exit code (0 for success, non-zero for failure)
+    """
+    try:
+        # Determine project directory
+        project_dir = Path(args.project_dir) if hasattr(args, 'project_dir') and args.project_dir else Path.cwd()
+        backup_manager = BackupManager(project_dir)
+        
+        backup_files = []
+        
+        if args.type == 'local' or args.type == 'all':
+            try:
+                backup_path = backup_manager.backup_local_roomodes()
+                backup_files.append(str(backup_path))
+                print(f"✓ Local .roomodes backed up to: {backup_path}")
+            except BackupError as e:
+                print(f"⚠ Local backup failed: {e}")
+                
+        if args.type == 'global' or args.type == 'all':
+            try:
+                backup_path = backup_manager.backup_global_roomodes()
+                backup_files.append(str(backup_path))
+                print(f"✓ Global .roomodes backed up to: {backup_path}")
+            except BackupError as e:
+                print(f"⚠ Global backup failed: {e}")
+                
+            try:
+                backup_path = backup_manager.backup_custom_modes()
+                backup_files.append(str(backup_path))
+                print(f"✓ custom_modes.yaml backed up to: {backup_path}")
+            except BackupError as e:
+                print(f"⚠ Custom modes backup failed: {e}")
+        
+        if backup_files:
+            print(f"\n{len(backup_files)} backup(s) created successfully")
+            return 0
+        else:
+            print("No backups were created")
+            return 1
+            
+    except Exception as e:
+        print(f"Backup operation failed: {e}")
+        return 1
+
+
+def restore_files(args: argparse.Namespace) -> int:
+    """
+    Restore configuration files from backup.
+    
+    Args:
+        args: Command line arguments
+        
+    Returns:
+        Exit code (0 for success, non-zero for failure)
+    """
+    try:
+        # Determine project directory
+        project_dir = Path(args.project_dir) if hasattr(args, 'project_dir') and args.project_dir else Path.cwd()
+        backup_manager = BackupManager(project_dir)
+        
+        if args.backup_file:
+            # Restore specific backup file
+            backup_path = Path(args.backup_file)
+            if not backup_path.is_absolute():
+                # Assume it's relative to cache directories
+                if 'local' in backup_path.name or '.roomodes' in backup_path.name:
+                    backup_path = backup_manager.local_backup_dir / backup_path.name
+                else:
+                    backup_path = backup_manager.global_backup_dir / backup_path.name
+            
+            try:
+                if 'local' in backup_path.name or '.roomodes' in backup_path.name:
+                    restored_path = backup_manager.restore_local_roomodes(backup_path)
+                    print(f"✓ Restored local .roomodes from: {backup_path}")
+                    print(f"  Restored to: {restored_path}")
+                elif 'custom_modes' in backup_path.name:
+                    restored_path = backup_manager.restore_custom_modes(backup_path)
+                    print(f"✓ Restored custom_modes.yaml from: {backup_path}")
+                    print(f"  Restored to: {restored_path}")
+                elif 'global' in backup_path.name:
+                    restored_path = backup_manager.restore_global_roomodes(backup_path)
+                    print(f"✓ Restored global .roomodes from: {backup_path}")
+                    print(f"  Restored to: {restored_path}")
+                else:
+                    print(f"✗ Unable to determine file type from backup name: {backup_path.name}")
+                    return 1
+                return 0
+            except BackupError as e:
+                print(f"✗ Restore failed: {e}")
+                return 1
+        else:
+            # Restore latest backups
+            restored_files = []
+            
+            if args.type == 'local' or args.type == 'all':
+                try:
+                    restored_path = backup_manager.restore_local_roomodes()
+                    restored_files.append(f"Local .roomodes -> {restored_path}")
+                    print(f"✓ Restored latest local .roomodes to: {restored_path}")
+                except BackupError as e:
+                    print(f"⚠ Local restore failed: {e}")
+                    
+            if args.type == 'global' or args.type == 'all':
+                try:
+                    restored_path = backup_manager.restore_global_roomodes()
+                    restored_files.append(f"Global .roomodes -> {restored_path}")
+                    print(f"✓ Restored latest global .roomodes to: {restored_path}")
+                except BackupError as e:
+                    print(f"⚠ Global restore failed: {e}")
+                    
+                try:
+                    restored_path = backup_manager.restore_custom_modes()
+                    restored_files.append(f"custom_modes.yaml -> {restored_path}")
+                    print(f"✓ Restored latest custom_modes.yaml to: {restored_path}")
+                except BackupError as e:
+                    print(f"⚠ Custom modes restore failed: {e}")
+            
+            if restored_files:
+                print(f"\n{len(restored_files)} file(s) restored successfully")
+                return 0
+            else:
+                print("No files were restored")
+                return 1
+                
+    except Exception as e:
+        print(f"Restore operation failed: {e}")
+        return 1
+
+
+def list_backups(args: argparse.Namespace) -> int:
+    """
+    List available backup files.
+    
+    Args:
+        args: Command line arguments
+        
+    Returns:
+        Exit code (0 for success, non-zero for failure)
+    """
+    try:
+        # Determine project directory
+        project_dir = Path(args.project_dir) if hasattr(args, 'project_dir') and args.project_dir else Path.cwd()
+        backup_manager = BackupManager(project_dir)
+        
+        # Get all backups
+        all_backups = backup_manager.list_available_backups()
+        
+        if not any(all_backups.values()):
+            print("No backups found")
+            return 0
+        
+        print(f"Available backups in {backup_manager.cache_dir}:\n")
+        
+        # Display local backups
+        if all_backups['local_roomodes']:
+            print("📁 Local .roomodes backups:")
+            for backup_info in sorted(all_backups['local_roomodes'], key=lambda x: x['number'], reverse=True):
+                print(f"  • {backup_info['path'].name} ({backup_info['size']}, {backup_info['mtime']})")
+            print()
+        
+        # Display global backups
+        if all_backups['global_roomodes']:
+            print("🌐 Global .roomodes backups:")
+            for backup_info in sorted(all_backups['global_roomodes'], key=lambda x: x['number'], reverse=True):
+                print(f"  • {backup_info['path'].name} ({backup_info['size']}, {backup_info['mtime']})")
+            print()
+        
+        # Display custom modes backups
+        if all_backups['custom_modes']:
+            print("⚙️  Custom modes backups:")
+            for backup_info in sorted(all_backups['custom_modes'], key=lambda x: x['number'], reverse=True):
+                print(f"  • {backup_info['path'].name} ({backup_info['size']}, {backup_info['mtime']})")
+            print()
+        
+        total_backups = sum(len(backups) for backups in all_backups.values())
+        print(f"Total: {total_backups} backup files")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"Error listing backups: {e}")
+        return 1
+
+
 def main() -> int:
     """
     Main CLI entry point.
@@ -270,6 +476,58 @@ def main() -> int:
         help="Run as an MCP server"
     )
     serve_parser.set_defaults(func=serve_mcp)
+    
+    # Backup command
+    backup_parser = subparsers.add_parser(
+        "backup",
+        help="Create backups of configuration files",
+        description="Create backups of configuration files"
+    )
+    backup_parser.add_argument(
+        "--type",
+        choices=["local", "global", "all"],
+        default="all",
+        help="Type of files to backup (default: all)"
+    )
+    backup_parser.add_argument(
+        "--project-dir",
+        help="Project directory (default: current directory)"
+    )
+    backup_parser.set_defaults(func=backup_files)
+    
+    # Restore command
+    restore_parser = subparsers.add_parser(
+        "restore",
+        help="Restore configuration files from backup",
+        description="Restore configuration files from backup"
+    )
+    restore_parser.add_argument(
+        "--type",
+        choices=["local", "global", "all"],
+        default="all",
+        help="Type of files to restore (default: all - latest backups)"
+    )
+    restore_parser.add_argument(
+        "--backup-file",
+        help="Specific backup file to restore (overrides --type)"
+    )
+    restore_parser.add_argument(
+        "--project-dir",
+        help="Project directory (default: current directory)"
+    )
+    restore_parser.set_defaults(func=restore_files)
+    
+    # List backups command
+    list_backups_parser = subparsers.add_parser(
+        "list-backups",
+        help="List available backup files",
+        description="List available backup files"
+    )
+    list_backups_parser.add_argument(
+        "--project-dir",
+        help="Project directory (default: current directory)"
+    )
+    list_backups_parser.set_defaults(func=list_backups)
     
     # Parse arguments
     args = parser.parse_args()

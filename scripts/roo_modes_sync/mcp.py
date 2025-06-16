@@ -12,8 +12,20 @@ import sys
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Union, Tuple
 
-from .core.sync import ModeSync
-from .exceptions import SyncError
+try:
+    from .core.sync import ModeSync
+    from .core.backup import BackupManager, BackupError
+    from .exceptions import SyncError
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    from pathlib import Path
+    script_dir = Path(__file__).parent
+    sys.path.insert(0, str(script_dir / "core"))
+    sys.path.insert(0, str(script_dir))
+    from core.sync import ModeSync
+    from core.backup import BackupManager, BackupError
+    from exceptions import SyncError
 
 # Set up logging
 logging.basicConfig(
@@ -40,6 +52,9 @@ class ModesMCPServer:
         """
         self.modes_dir = modes_dir
         self.sync = ModeSync(modes_dir)
+        # Initialize BackupManager with project root (parent of modes dir)
+        project_root = modes_dir.parent
+        self.backup_manager = BackupManager(project_root)
         
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -141,6 +156,52 @@ class ModesMCPServer:
                     'properties': {},
                     'required': []
                 }
+            },
+            {
+                'name': 'backup_modes',
+                'display_name': 'Backup Modes',
+                'description': 'Create backup of modes configuration files',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'target': {
+                            'type': 'string',
+                            'description': 'Target type for backup (local, global, or both)',
+                            'default': 'both'
+                        }
+                    },
+                    'required': []
+                }
+            },
+            {
+                'name': 'restore_modes',
+                'display_name': 'Restore Modes',
+                'description': 'Restore modes configuration from backup',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'backup_number': {
+                            'type': 'integer',
+                            'description': 'Backup number to restore from'
+                        },
+                        'target': {
+                            'type': 'string',
+                            'description': 'Target type for restore (local, global, or both)',
+                            'default': 'both'
+                        }
+                    },
+                    'required': ['backup_number']
+                }
+            },
+            {
+                'name': 'list_backups',
+                'display_name': 'List Backups',
+                'description': 'List all available backup files',
+                'schema': {
+                    'type': 'object',
+                    'properties': {},
+                    'required': []
+                }
             }
         ]
     
@@ -182,6 +243,12 @@ class ModesMCPServer:
             return self._handle_sync_modes(arguments)
         elif tool_name == 'get_sync_status':
             return self._handle_get_sync_status(arguments)
+        elif tool_name == 'backup_modes':
+            return self._handle_backup_modes(arguments)
+        elif tool_name == 'restore_modes':
+            return self._handle_restore_modes(arguments)
+        elif tool_name == 'list_backups':
+            return self._handle_list_backups(arguments)
         else:
             return {
                 'type': 'error',
@@ -223,6 +290,171 @@ class ModesMCPServer:
                 
         except Exception as e:
             logger.exception("Error in sync_modes tool call")
+            return {
+                'type': 'error',
+                'error': {
+                    'code': 'INTERNAL_ERROR',
+                    'message': str(e)
+                }
+            }
+    
+    def _handle_backup_modes(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle a backup_modes tool call.
+        
+        Args:
+            arguments: Tool arguments
+            
+        Returns:
+            Tool call response
+        """
+        try:
+            target = arguments.get('target', 'both')
+            
+            # Use backup_all method which returns list of backup paths
+            backup_paths = self.backup_manager.backup_all()
+            
+            # Convert backup paths to a more informative result
+            result = {
+                'success': True,
+                'backup_paths': [str(path) for path in backup_paths],
+                'message': f'Successfully created {len(backup_paths)} backups'
+            }
+            
+            return {
+                'type': 'tool_call_response',
+                'content': {
+                    'result': result
+                }
+            }
+            
+        except BackupError as e:
+            logger.exception("Backup error in backup_modes tool call")
+            return {
+                'type': 'error',
+                'error': {
+                    'code': 'BACKUP_ERROR',
+                    'message': str(e)
+                }
+            }
+        except Exception as e:
+            logger.exception("Error in backup_modes tool call")
+            return {
+                'type': 'error',
+                'error': {
+                    'code': 'INTERNAL_ERROR',
+                    'message': str(e)
+                }
+            }
+    
+    def _handle_restore_modes(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle a restore_modes tool call.
+        
+        Args:
+            arguments: Tool arguments
+            
+        Returns:
+            Tool call response
+        """
+        try:
+            backup_number = arguments.get('backup_number')
+            target = arguments.get('target', 'both')
+            
+            if backup_number is None:
+                return {
+                    'type': 'error',
+                    'error': {
+                        'code': 'INVALID_ARGUMENTS',
+                        'message': 'backup_number is required'
+                    }
+                }
+            
+            # Determine which restore method to use based on target
+            restored_files = []
+            if target in ['local', 'both']:
+                try:
+                    restored_path = self.backup_manager.restore_local_roomodes()
+                    restored_files.append(str(restored_path))
+                except BackupError:
+                    pass  # No local backups available
+            
+            if target in ['global', 'both']:
+                try:
+                    restored_path = self.backup_manager.restore_global_roomodes()
+                    restored_files.append(str(restored_path))
+                except BackupError:
+                    pass  # No global backups available
+                    
+                try:
+                    restored_path = self.backup_manager.restore_custom_modes()
+                    restored_files.append(str(restored_path))
+                except BackupError:
+                    pass  # No custom modes backups available
+            
+            result = {
+                'success': len(restored_files) > 0,
+                'restored_files': restored_files,
+                'message': f'Successfully restored {len(restored_files)} files' if restored_files else 'No backup files available for restore'
+            }
+            
+            return {
+                'type': 'tool_call_response',
+                'content': {
+                    'result': result
+                }
+            }
+            
+        except BackupError as e:
+            logger.exception("Backup error in restore_modes tool call")
+            return {
+                'type': 'error',
+                'error': {
+                    'code': 'BACKUP_ERROR',
+                    'message': str(e)
+                }
+            }
+        except Exception as e:
+            logger.exception("Error in restore_modes tool call")
+            return {
+                'type': 'error',
+                'error': {
+                    'code': 'INTERNAL_ERROR',
+                    'message': str(e)
+                }
+            }
+    
+    def _handle_list_backups(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle a list_backups tool call.
+        
+        Args:
+            arguments: Tool arguments
+            
+        Returns:
+            Tool call response with backup list
+        """
+        try:
+            result = self.backup_manager.list_available_backups()
+            
+            return {
+                'type': 'tool_call_response',
+                'content': {
+                    'result': result
+                }
+            }
+            
+        except BackupError as e:
+            logger.exception("Backup error in list_backups tool call")
+            return {
+                'type': 'error',
+                'error': {
+                    'code': 'BACKUP_ERROR',
+                    'message': str(e)
+                }
+            }
+        except Exception as e:
+            logger.exception("Error in list_backups tool call")
             return {
                 'type': 'error',
                 'error': {

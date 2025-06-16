@@ -182,7 +182,7 @@ class TestModeValidator:
     def test_validate_groups(self, validator, temp_mode_file):
         """Test validation of groups configuration."""
         # Test with valid simple groups
-        valid_simple_groups = [['read'], ['edit'], ['browser'], ['read', 'edit']]
+        valid_simple_groups = [['read'], ['edit'], ['browser'], ['command'], ['mcp'], ['read', 'edit'], ['read', 'command', 'mcp']]
         for groups in valid_simple_groups:
             config = self.create_valid_config()
             config['groups'] = groups
@@ -325,3 +325,175 @@ class TestModeValidator:
             )
         assert "Missing required fields" in str(e.value)
         assert "version" in str(e.value)
+
+
+class TestDevelopmentMetadataHandling:
+    """Test cases for development metadata handling functionality."""
+    
+    @pytest.fixture
+    def validator(self):
+        """Create a validator instance for testing."""
+        return ModeValidator()
+    
+    @pytest.fixture
+    def temp_mode_file(self, tmp_path):
+        """Create a temporary directory and file for test mode files."""
+        modes_dir = tmp_path / "modes"
+        modes_dir.mkdir()
+        mode_file = modes_dir / "test-mode.yaml"
+        return mode_file
+    
+    def create_valid_config_with_dev_metadata(self) -> Dict[str, Any]:
+        """Helper to create a valid mode configuration with development metadata."""
+        return {
+            'slug': 'test-mode',
+            'name': 'Test Mode',
+            'roleDefinition': 'This is a test mode',
+            'groups': ['read', 'edit'],
+            'source': 'local',  # Development metadata
+            'model': 'claude-sonnet-4'  # Development metadata
+        }
+    
+    def test_validate_mode_with_development_metadata_should_pass(self, validator, temp_mode_file):
+        """Test that mode files with development metadata validate successfully."""
+        config = self.create_valid_config_with_dev_metadata()
+        
+        # Should validate successfully with collect_warnings=True
+        result = validator.validate_mode_config(config, temp_mode_file.name, collect_warnings=True)
+        assert isinstance(result, ValidationResult)
+        assert result.valid is True
+        
+        # Should validate successfully as boolean
+        result = validator.validate_mode_config(config, temp_mode_file.name)
+        assert result is True
+    
+    def test_development_metadata_fields_are_accepted(self, validator, temp_mode_file):
+        """Test that specific development metadata fields are accepted during validation."""
+        config = {
+            'slug': 'test-mode',
+            'name': 'Test Mode',
+            'roleDefinition': 'This is a test mode',
+            'groups': ['read', 'edit']
+        }
+        
+        # Test each development metadata field individually
+        dev_metadata_fields = [
+            ('source', 'local'),
+            ('source', 'global'),
+            ('model', 'claude-sonnet-4'),
+            ('model', 'gpt-4'),
+        ]
+        
+        for field_name, field_value in dev_metadata_fields:
+            test_config = config.copy()
+            test_config[field_name] = field_value
+            
+            result = validator.validate_mode_config(test_config, temp_mode_file.name, collect_warnings=True)
+            assert result.valid is True, f"Validation failed for {field_name}: {field_value}"
+    
+    def test_strip_development_metadata_functionality(self, validator, temp_mode_file):
+        """Test that development metadata can be stripped from configuration."""
+        config_with_metadata = self.create_valid_config_with_dev_metadata()
+        
+        # Test the strip_development_metadata method (to be implemented)
+        stripped_config = validator.strip_development_metadata(config_with_metadata)
+        
+        # Stripped config should not contain development metadata fields
+        assert 'source' not in stripped_config
+        assert 'model' not in stripped_config
+        
+        # Stripped config should retain all core Roo fields
+        expected_core_fields = {'slug', 'name', 'roleDefinition', 'groups'}
+        assert set(stripped_config.keys()) == expected_core_fields
+        
+        # Values should be unchanged
+        assert stripped_config['slug'] == 'test-mode'
+        assert stripped_config['name'] == 'Test Mode'
+        assert stripped_config['roleDefinition'] == 'This is a test mode'
+        assert stripped_config['groups'] == ['read', 'edit']
+    
+    def test_strip_development_metadata_preserves_optional_core_fields(self, validator, temp_mode_file):
+        """Test that stripping preserves optional core Roo fields."""
+        config = self.create_valid_config_with_dev_metadata()
+        config['whenToUse'] = 'Use this mode for testing'
+        config['customInstructions'] = 'Follow these instructions'
+        
+        stripped_config = validator.strip_development_metadata(config)
+        
+        # Should preserve optional core fields
+        assert 'whenToUse' in stripped_config
+        assert 'customInstructions' in stripped_config
+        assert stripped_config['whenToUse'] == 'Use this mode for testing'
+        assert stripped_config['customInstructions'] == 'Follow these instructions'
+        
+        # Should remove development metadata
+        assert 'source' not in stripped_config
+        assert 'model' not in stripped_config
+    
+    def test_mixed_valid_invalid_scenarios(self, validator, temp_mode_file):
+        """Test scenarios with both valid metadata and invalid core fields."""
+        # Test with development metadata but missing required core field
+        config = self.create_valid_config_with_dev_metadata()
+        del config['slug']  # Remove required field
+        
+        # Should still fail validation due to missing core field
+        with pytest.raises(ModeValidationError) as e:
+            validator.validate_mode_config(config, temp_mode_file.name)
+        assert "Missing required fields" in str(e.value)
+        assert "slug" in str(e.value)
+        
+        # Test with development metadata and invalid core field value
+        config = self.create_valid_config_with_dev_metadata()
+        config['groups'] = ['invalid-group']  # Invalid core field value
+        
+        # Should fail validation due to invalid core field
+        with pytest.raises(ModeValidationError) as e:
+            validator.validate_mode_config(config, temp_mode_file.name)
+        assert "Invalid group name" in str(e.value)
+    
+    def test_unknown_metadata_fields_still_generate_warnings(self, validator, temp_mode_file):
+        """Test that unknown fields (not development metadata) still generate warnings."""
+        config = self.create_valid_config_with_dev_metadata()
+        config['unknownField'] = 'some value'  # This should still be flagged
+        
+        result = validator.validate_mode_config(config, temp_mode_file.name, collect_warnings=True)
+        assert result.valid is True
+        
+        # Should have warning for unknown field but not for development metadata
+        warnings_messages = [w['message'] for w in result.warnings]
+        assert any('unknownField' in msg for msg in warnings_messages)
+        
+        # Should NOT have warnings for development metadata fields
+        assert not any('source' in msg for msg in warnings_messages)
+        assert not any('model' in msg for msg in warnings_messages)
+    
+    def test_get_development_metadata_fields(self, validator):
+        """Test that development metadata fields are properly defined."""
+        dev_fields = validator.get_development_metadata_fields()
+        
+        # Should include expected development metadata fields
+        expected_fields = {'source', 'model'}
+        assert set(dev_fields) == expected_fields
+    
+    def test_backward_compatibility_with_existing_validation(self, validator, temp_mode_file):
+        """Test that existing validation behavior is preserved for core fields."""
+        # Test with standard config (no development metadata)
+        standard_config = {
+            'slug': 'test-mode',
+            'name': 'Test Mode',
+            'roleDefinition': 'This is a test mode',
+            'groups': ['read', 'edit']
+        }
+        
+        # Should work exactly as before
+        result = validator.validate_mode_config(standard_config, temp_mode_file.name)
+        assert result is True
+        
+        # Test with invalid standard config
+        invalid_config = standard_config.copy()
+        del invalid_config['slug']
+        
+        # Should fail exactly as before
+        with pytest.raises(ModeValidationError) as e:
+            validator.validate_mode_config(invalid_config, temp_mode_file.name)
+        assert "Missing required fields" in str(e.value)

@@ -7,7 +7,11 @@ from pathlib import Path
 from typing import Dict, List, Any, Set
 import re
 
-from ..exceptions import ConfigurationError
+try:
+    from ..exceptions import ConfigurationError
+except ImportError:
+    # Fallback for direct execution
+    from exceptions import ConfigurationError
 
 
 class OrderingStrategy:

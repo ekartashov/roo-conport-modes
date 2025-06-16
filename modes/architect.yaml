@@ -225,8 +225,8 @@ customInstructions: >-
   - Document continuity strategies via `log_custom_data`
 groups:
   - read
-  - - edit
-    - fileRegex: \.md$
+  - edit:
+      fileRegex: \.md$
       description: Documentation files (markdown files only)
   - browser
   - command

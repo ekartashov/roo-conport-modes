@@ -20,8 +20,8 @@ whenToUse: >-
   - Assisting with interactive glossary building and link management.
 groups:
   - read
-  - - edit # Restricted to common documentation and config file types
-    - fileRegex: \.(md|rst|adoc|txt|yaml|json|toml|text|markdown)$
+  - edit: # Restricted to common documentation and config file types
+      fileRegex: \.(md|rst|adoc|txt|yaml|json|toml|text|markdown)$
       description: "Documentation, configuration, and text files"
   - mcp
   - command # For tools like linters or doc generators
