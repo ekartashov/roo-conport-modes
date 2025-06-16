@@ -259,7 +259,8 @@ source: global
             modes_dir=temp_modes_dir,
             config=None,
             strategy="strategic",
-            dry_run=True
+            dry_run=True,
+            no_backup=False
         )
         
         result = sync_global(args)
@@ -276,7 +277,8 @@ source: global
                 modes_dir=temp_modes_dir,
                 project_dir=temp_project,
                 strategy="strategic",
-                dry_run=True
+                dry_run=True,
+                no_backup=False
             )
             
             result = sync_local(args)
@@ -434,7 +436,8 @@ class TestCLIErrorHandling:
             modes_dir=Path("/nonexistent"),
             config=None,
             strategy="strategic",
-            dry_run=False
+            dry_run=False,
+            no_backup=False
         )
         
         result = sync_global(args)
@@ -450,7 +453,8 @@ class TestCLIErrorHandling:
             modes_dir=Path("/nonexistent"),
             project_dir="/nonexistent",
             strategy="strategic",
-            dry_run=False
+            dry_run=False,
+            no_backup=False
         )
         
         result = sync_local(args)

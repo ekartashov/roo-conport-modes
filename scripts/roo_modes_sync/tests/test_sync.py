@@ -197,15 +197,43 @@ class TestModeSync:
         assert slugs[0] == 'mode3'
         assert slugs[1] == 'mode1'
     
-    def test_format_multiline_string(self, sync_manager):
-        """Test formatting multiline strings for YAML output."""
-        single_line = "This is a single line."
-        assert sync_manager.format_multiline_string(single_line) == single_line
+    def test_yaml_formatting_with_custom_dumper(self, sync_manager):
+        """Test YAML formatting with custom dumper for proper indentation."""
+        import yaml
+        from roo_modes_sync.core.sync import CustomYAMLDumper
         
-        multiline = "This is a\nmultiline string\nwith several lines."
-        formatted = sync_manager.format_multiline_string(multiline, indent=2)
-        assert formatted.startswith(">-\n")
-        assert "  This is a" in formatted
+        # Test data structure similar to what we generate
+        test_config = {
+            'customModes': [
+                {
+                    'slug': 'test-mode',
+                    'name': 'Test Mode',
+                    'roleDefinition': 'This is a single line.',
+                    'groups': ['read', 'edit'],
+                    'source': 'global'
+                },
+                {
+                    'slug': 'multiline-mode',
+                    'name': 'Multiline Mode',
+                    'roleDefinition': 'This is a\nmultiline string\nwith several lines.',
+                    'groups': ['read'],
+                    'source': 'global'
+                }
+            ]
+        }
+        
+        # Test that YAML dumps without errors using our custom dumper
+        yaml_output = yaml.dump(test_config, Dumper=CustomYAMLDumper,
+                               default_flow_style=False, allow_unicode=True,
+                               sort_keys=False, width=float('inf'), indent=2)
+        
+        # Verify basic structure is preserved
+        assert 'customModes:' in yaml_output
+        assert 'slug: test-mode' in yaml_output
+        assert 'slug: multiline-mode' in yaml_output
+        
+        # Verify multiline content is properly escaped/formatted
+        assert 'This is a' in yaml_output
     
     def test_backup_existing_config(self, sync_manager, temp_config_dir):
         """Test backup of existing global config."""

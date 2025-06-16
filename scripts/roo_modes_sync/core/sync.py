@@ -16,6 +16,16 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
 
+
+class CustomYAMLDumper(yaml.SafeDumper):
+    """Custom YAML dumper with proper indentation for sequences."""
+    
+    def write_line_break(self, data=None):
+        super().write_line_break(data)
+
+    def increase_indent(self, flow=False, indentless=False):
+        return super().increase_indent(flow, False)  # Never indentless
+
 # Try relative imports first, fall back to absolute imports
 try:
     from ..exceptions import SyncError, ConfigurationError
@@ -342,7 +352,7 @@ class ModeSync:
     
     def format_multiline_string(self, text: str, indent: int = 2) -> str:
         """
-        Format a multiline string with proper YAML folded scalar syntax.
+        Format a multiline string with proper YAML literal scalar syntax.
         
         Args:
             text: String to format
@@ -352,15 +362,19 @@ class ModeSync:
             Formatted string
         """
         if '\n' in text or len(text) > 80:
-            # Use folded scalar syntax for multiline text
+            # Use literal scalar syntax for multiline text
             prefix = ' ' * indent
-            formatted_text = text.strip().replace('\n', f'\n{prefix}')
-            return f">-\n{prefix}{formatted_text}"
+            # Escape any problematic characters and ensure proper line breaks
+            escaped_text = text.strip()
+            # Split into lines and indent each one
+            lines = escaped_text.split('\n')
+            formatted_lines = [f"{prefix}{line}" for line in lines]
+            return f"|-\n" + '\n'.join(formatted_lines)
         else:
-            # Single line - check if it needs quoting
-            if ':' in text or text.startswith('Activate') or '"' in text:
-                return f'"{text}"'
-            return text
+            # Single line - always quote to avoid YAML parsing issues
+            # Escape any double quotes in the text
+            escaped_text = text.replace('"', '\\"')
+            return f'"{escaped_text}"'
     
     def backup_existing_config(self) -> bool:
         """
@@ -432,35 +446,10 @@ class ModeSync:
             # Ensure the parent directory exists
             config_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Custom YAML representation for better formatting
-            yaml_content = "customModes:\n"
-            
-            for mode in config['customModes']:
-                yaml_content += f"  - slug: {mode['slug']}\n"
-                yaml_content += f"    name: {self.format_multiline_string(mode['name'], 4)}\n"
-                yaml_content += f"    roleDefinition: {self.format_multiline_string(mode['roleDefinition'], 4)}\n"
-                
-                if 'whenToUse' in mode:
-                    yaml_content += f"    whenToUse: {self.format_multiline_string(mode['whenToUse'], 4)}\n"
-                
-                if 'customInstructions' in mode:
-                    yaml_content += f"    customInstructions: {self.format_multiline_string(mode['customInstructions'], 4)}\n"
-                
-                yaml_content += "    groups:\n"
-                for group in mode['groups']:
-                    if isinstance(group, str):
-                        yaml_content += f"      - {group}\n"
-                    elif isinstance(group, list) and len(group) == 2:
-                        yaml_content += f"      - - {group[0]}\n"
-                        yaml_content += f"        - fileRegex: {group[1]['fileRegex']}\n"
-                        if 'description' in group[1]:
-                            yaml_content += f"          description: {group[1]['description']}\n"
-                
-                yaml_content += f"    source: {mode['source']}\n"
-            
-            # Write to file
+            # Use custom YAML dumper for proper formatting and escaping with custom indentation
             with open(config_path, 'w', encoding='utf-8') as f:
-                f.write(yaml_content)
+                yaml.dump(config, f, Dumper=CustomYAMLDumper, default_flow_style=False,
+                         allow_unicode=True, sort_keys=False, width=float('inf'), indent=2)
             
             logger.info(f"Wrote configuration to {config_path}")
             return True
@@ -531,13 +520,17 @@ class ModeSync:
                 logger.error(f"Failed to create local directory: {e}")
                 return False
         
-        # Create backup if not dry run
-        if not dry_run:
+        # Create backup if not dry run and no_backup option is not True
+        if not dry_run and not options.get('no_backup', False):
             try:
+                # Attempt backup before sync
                 self.backup_existing_config()
+                logger.info("✅ Backup created successfully before sync")
             except SyncError as e:
-                logger.warning(f"Could not create backup: {e}")
-                # Continue without backup
+                logger.warning(f"⚠️ Could not create backup: {e}")
+                # Continue without backup, but inform user
+        elif not dry_run and options.get('no_backup', False):
+            logger.info("🚫 Backup skipped due to no_backup option")
         
         # Create configuration
         try:

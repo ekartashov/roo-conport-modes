@@ -183,10 +183,21 @@ class TestAlphabeticalOrderingStrategy:
     
     def test_apply_strategy(self, strategy, sample_modes):
         """Test _apply_strategy method."""
-        # Test
+        # Test with default global_sort=True (global alphabetical sorting)
         ordered_modes = strategy._apply_strategy(sample_modes, {})
         
-        # Verify category ordering
+        # With global_sort=True, all modes should be alphabetically sorted across all categories
+        all_mode_slugs = []
+        for category, modes in sample_modes.items():
+            all_mode_slugs.extend(modes)
+        expected_order = sorted(all_mode_slugs)
+        
+        assert ordered_modes == expected_order
+        
+        # Test with global_sort=False (category-based alphabetical sorting)
+        ordered_modes_category = strategy._apply_strategy(sample_modes, {'global_sort': False})
+        
+        # Verify category ordering when global_sort is False
         core_end_idx = len(sample_modes['core']) - 1
         enhanced_start_idx = core_end_idx + 1
         enhanced_end_idx = enhanced_start_idx + len(sample_modes['enhanced']) - 1
@@ -195,20 +206,20 @@ class TestAlphabeticalOrderingStrategy:
         discovered_start_idx = specialized_end_idx + 1
         
         # Check that core modes come first and are alphabetically sorted
-        assert set(ordered_modes[0:core_end_idx + 1]) == set(sample_modes['core'])
-        assert ordered_modes[0:core_end_idx + 1] == sorted(sample_modes['core'])
+        assert set(ordered_modes_category[0:core_end_idx + 1]) == set(sample_modes['core'])
+        assert ordered_modes_category[0:core_end_idx + 1] == sorted(sample_modes['core'])
         
         # Check that enhanced modes come next and are alphabetically sorted
-        assert set(ordered_modes[enhanced_start_idx:enhanced_end_idx + 1]) == set(sample_modes['enhanced'])
-        assert ordered_modes[enhanced_start_idx:enhanced_end_idx + 1] == sorted(sample_modes['enhanced'])
+        assert set(ordered_modes_category[enhanced_start_idx:enhanced_end_idx + 1]) == set(sample_modes['enhanced'])
+        assert ordered_modes_category[enhanced_start_idx:enhanced_end_idx + 1] == sorted(sample_modes['enhanced'])
         
         # Check that specialized modes come next and are alphabetically sorted
-        assert set(ordered_modes[specialized_start_idx:specialized_end_idx + 1]) == set(sample_modes['specialized'])
-        assert ordered_modes[specialized_start_idx:specialized_end_idx + 1] == sorted(sample_modes['specialized'])
+        assert set(ordered_modes_category[specialized_start_idx:specialized_end_idx + 1]) == set(sample_modes['specialized'])
+        assert ordered_modes_category[specialized_start_idx:specialized_end_idx + 1] == sorted(sample_modes['specialized'])
         
         # Check that discovered modes come last and are alphabetically sorted
-        assert set(ordered_modes[discovered_start_idx:]) == set(sample_modes['discovered'])
-        assert ordered_modes[discovered_start_idx:] == sorted(sample_modes['discovered'])
+        assert set(ordered_modes_category[discovered_start_idx:]) == set(sample_modes['discovered'])
+        assert ordered_modes_category[discovered_start_idx:] == sorted(sample_modes['discovered'])
 
 
 class TestCategoryOrderingStrategy:

@@ -149,19 +149,27 @@ class StrategicOrderingStrategy(OrderingStrategy):
 
 
 class AlphabeticalOrderingStrategy(OrderingStrategy):
-    """Orders modes alphabetically within each category."""
+    """Orders modes alphabetically within each category or globally."""
     
     def _apply_strategy(self, categorized_modes: Dict[str, List[str]], options: Dict[str, Any]) -> List[str]:
         """
-        Order modes alphabetically within categories.
+        Order modes alphabetically within categories or globally.
         
         Args:
             categorized_modes: Dictionary of modes grouped by category
-            options: Strategy options
+            options: Strategy options. If 'global_sort' is True, sorts all modes alphabetically
+                    regardless of category. Otherwise sorts within categories.
             
         Returns:
-            List of mode slugs in alphabetical order within categories
+            List of mode slugs in alphabetical order
         """
+        # Check if global alphabetical sorting is requested
+        if options.get('global_sort', True):  # Default to global sort for simplicity
+            # Get all mode slugs and sort them globally
+            all_slugs = self._get_all_mode_slugs(categorized_modes)
+            return sorted(all_slugs)
+        
+        # Original behavior: sort within categories
         result = []
         
         # Process each category in order

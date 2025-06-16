@@ -83,7 +83,7 @@ def sync_global(args: argparse.Namespace) -> int:
         # Perform sync
         success = sync.sync_modes(
             strategy_name=args.strategy,
-            options={},
+            options={'no_backup': args.no_backup},
             dry_run=args.dry_run
         )
         
@@ -125,7 +125,7 @@ def sync_local(args: argparse.Namespace) -> int:
         # Perform sync
         success = sync.sync_modes(
             strategy_name=args.strategy,
-            options={},
+            options={'no_backup': args.no_backup},
             dry_run=args.dry_run
         )
         
@@ -440,6 +440,11 @@ def main() -> int:
         action="store_true",
         help="Don't write configuration file, just show what would be done"
     )
+    sync_global_parser.add_argument(
+        "--no-backup",
+        action="store_true",
+        help="Skip creating backup before sync"
+    )
     sync_global_parser.set_defaults(func=sync_global)
     
     # Sync local command
@@ -460,6 +465,11 @@ def main() -> int:
         "--dry-run",
         action="store_true",
         help="Don't write configuration file, just show what would be done"
+    )
+    sync_local_parser.add_argument(
+        "--no-backup",
+        action="store_true",
+        help="Skip creating backup before sync"
     )
     sync_local_parser.set_defaults(func=sync_local)
     
