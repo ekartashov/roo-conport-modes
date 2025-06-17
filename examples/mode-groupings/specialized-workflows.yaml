@@ -1,0 +1,62 @@
+# Specialized Workflows Configuration
+# Task-specific groupings for different scenarios
+
+strategy: groupings
+
+mode_groups:
+  # Debugging workflow - focused on problem solving
+  debugging-focus:
+    - debug        # Primary debugging
+    - ask          # Ask questions about issues
+    - code         # Fix implementation
+
+  # Security review workflow
+  security-focus:
+    - security-auditor    # Security analysis
+    - code               # Code review and fixes
+    - ask                # Security questions
+
+  # Learning and exploration workflow
+  learning-focus:
+    - ask          # Ask questions
+    - architect    # Understand system design
+    - code         # Try implementations
+
+  # Quick fixes workflow - minimal but effective
+  quick-fixes:
+    - debug        # Find the issue
+    - code         # Fix it
+
+  # Comprehensive review workflow
+  comprehensive-review:
+    - architect           # System understanding
+    - security-auditor    # Security review
+    - code               # Implementation review
+    - debug              # Issue identification
+    - ask                # Clarifications
+
+# Switch between different specialized workflows easily
+# Change this to switch focus:
+active_group: debugging-focus
+
+# Alternative: Use multiple groups for complex tasks
+# active_groups:
+#   - debugging-focus
+#   - security-focus
+# group_order:
+#   - debugging-focus
+#   - security-focus
+
+# Optional: Always prioritize debugging in any workflow
+priority_first:
+  - debug
+
+# Optional: Exclude modes not needed for current focus
+exclude: []
+
+# Usage Examples:
+# 1. For bug fixing: active_group: debugging-focus
+# 2. For security work: active_group: security-focus  
+# 3. For learning: active_group: learning-focus
+# 4. For quick tasks: active_group: quick-fixes
+# 5. For thorough review: active_group: comprehensive-review

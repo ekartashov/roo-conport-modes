@@ -254,6 +254,128 @@ class CustomOrderingStrategy(OrderingStrategy):
         return result
 
 
+class GroupingsOrderingStrategy(OrderingStrategy):
+    """Orders modes based on user-defined groups with specific ordering."""
+    
+    def order_modes(self, categorized_modes: Dict[str, List[str]], options: Dict[str, Any]) -> List[str]:
+        """
+        Order modes according to strategy, but only include modes from specified groups.
+        
+        This overrides the base class behavior to NOT automatically add missing modes,
+        since groupings should be selective.
+        
+        Args:
+            categorized_modes: Dictionary of modes grouped by category
+            options: Strategy-specific options
+            
+        Returns:
+            List of mode slugs in desired order from specified groups only
+        """
+        # Apply strategy-specific ordering
+        ordered_modes = self._apply_strategy(categorized_modes, options)
+        
+        # Apply common filters (exclude, priority_first)
+        ordered_modes = self._apply_filters(ordered_modes, options)
+        
+        # For groupings, we deliberately do NOT add missing modes
+        # Only return modes from the specified groups
+        
+        return ordered_modes
+    
+    def _apply_strategy(self, categorized_modes: Dict[str, List[str]], options: Dict[str, Any]) -> List[str]:
+        """
+        Order modes according to user-defined groups.
+        
+        Args:
+            categorized_modes: Dictionary of modes grouped by category
+            options: Strategy options, must include 'mode_groups' and either 'active_group' or 'active_groups'
+            
+        Returns:
+            List of mode slugs in groupings order
+            
+        Raises:
+            ConfigurationError: If required options are missing or invalid
+        """
+        # Validate required options
+        if 'mode_groups' not in options:
+            raise ConfigurationError("GroupingsOrderingStrategy requires 'mode_groups' option")
+        
+        mode_groups = options['mode_groups']
+        if not isinstance(mode_groups, dict):
+            raise ConfigurationError("'mode_groups' must be a dictionary")
+        
+        # Get all available mode slugs
+        all_available_modes = set(self._get_all_mode_slugs(categorized_modes))
+        
+        # Determine which groups to use
+        active_groups = self._get_active_groups(options)
+        
+        # Validate that all active groups exist
+        for group_name in active_groups:
+            if group_name not in mode_groups:
+                raise ConfigurationError(f"Active group '{group_name}' not found in mode_groups")
+        
+        # Build the ordered list from active groups
+        result = []
+        seen_modes = set()
+        
+        # Process groups in order (if group_order is specified, use it; otherwise use active_groups order)
+        group_order = options.get('group_order', active_groups)
+        
+        for group_name in group_order:
+            if group_name in active_groups:  # Only process groups that are active
+                group_modes = mode_groups.get(group_name, [])
+                
+                # Add modes from this group, preserving order and filtering duplicates
+                for mode_slug in group_modes:
+                    if mode_slug in all_available_modes and mode_slug not in seen_modes:
+                        result.append(mode_slug)
+                        seen_modes.add(mode_slug)
+        
+        # Handle priority_modes if specified (should come first regardless of group order)
+        if 'priority_modes' in options and options['priority_modes']:
+            priority_modes = [mode for mode in options['priority_modes']
+                            if mode in all_available_modes and mode in result]
+            
+            # Remove priority modes from current result
+            filtered_result = [mode for mode in result if mode not in priority_modes]
+            
+            # Add priority modes at the beginning
+            result = priority_modes + filtered_result
+        
+        return result
+    
+    def _get_active_groups(self, options: Dict[str, Any]) -> List[str]:
+        """
+        Get the list of active groups from options.
+        
+        Args:
+            options: Strategy options
+            
+        Returns:
+            List of active group names
+            
+        Raises:
+            ConfigurationError: If neither active_group nor active_groups is specified
+        """
+        if 'active_group' in options:
+            # Single active group
+            active_group = options['active_group']
+            if not isinstance(active_group, str):
+                raise ConfigurationError("'active_group' must be a string")
+            return [active_group]
+        
+        elif 'active_groups' in options:
+            # Multiple active groups
+            active_groups = options['active_groups']
+            if not isinstance(active_groups, list):
+                raise ConfigurationError("'active_groups' must be a list")
+            return active_groups
+        
+        else:
+            raise ConfigurationError("GroupingsOrderingStrategy requires either 'active_group' or 'active_groups' option")
+
+
 class OrderingStrategyFactory:
     """Factory for creating ordering strategies."""
     
@@ -274,7 +396,8 @@ class OrderingStrategyFactory:
             'strategic': StrategicOrderingStrategy,
             'alphabetical': AlphabeticalOrderingStrategy,
             'category': CategoryOrderingStrategy,
-            'custom': CustomOrderingStrategy
+            'custom': CustomOrderingStrategy,
+            'groupings': GroupingsOrderingStrategy
         }
         
         if strategy_name not in strategies:

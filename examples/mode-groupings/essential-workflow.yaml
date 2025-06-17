@@ -1,0 +1,21 @@
+# Essential Development Workflow Configuration
+# Simple grouping for everyday development tasks
+
+strategy: groupings
+
+mode_groups:
+  # Core development workflow - just the essentials
+  essential:
+    - code      # Development and implementation
+    - debug     # Bug fixing and troubleshooting
+    - ask       # Questions and clarifications
+
+# Use the essential group
+active_group: essential
+
+# Optional: Put debug first for quick access to troubleshooting
+priority_first:
+  - debug
+
+# Optional: No exclusions for this simple workflow
+exclude: []

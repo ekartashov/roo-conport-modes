@@ -1,0 +1,45 @@
+# Full Development Cycle Configuration
+# Complete workflow from planning to deployment
+
+strategy: groupings
+
+mode_groups:
+  # Planning phase
+  planning:
+    - architect     # System design and planning
+    - ask          # Requirements clarification
+
+  # Development phase
+  development:
+    - code         # Implementation
+    - debug        # Bug fixing
+
+  # Quality assurance
+  quality:
+    - security-auditor    # Security review
+    - prompt-enhancer     # Optimization
+
+  # Complete workflow combining all phases
+  full-cycle:
+    - architect    # 1. Planning
+    - code         # 2. Development
+    - debug        # 3. Testing/Fixing
+    - ask          # 4. Clarifications
+    - security-auditor  # 5. Security review
+
+# Use multiple groups for a comprehensive workflow
+active_groups:
+  - planning
+  - development
+
+# Specify group order (planning first, then development)
+group_order:
+  - planning
+  - development
+
+# Optional: Prioritize architect mode for planning-first approach
+priority_first:
+  - architect
+
+# Optional: No exclusions - we want all selected modes
+exclude: []
