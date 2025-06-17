@@ -33,6 +33,7 @@ try:
     from .validation import ModeValidator, ValidationLevel, ValidationResult
     from .ordering import OrderingStrategyFactory
     from .backup import BackupManager, BackupError
+    from .global_config_fixer import GlobalConfigFixer
 except ImportError:
     # Fallback for direct script execution
     from exceptions import SyncError
@@ -40,6 +41,7 @@ except ImportError:
     from validation import ModeValidator, ValidationLevel
     from ordering import OrderingStrategyFactory
     from backup import BackupManager, BackupError
+    from global_config_fixer import GlobalConfigFixer
 
 
 # Configure logging
@@ -93,6 +95,7 @@ class ModeSync:
         self.discovery = ModeDiscovery(self.modes_dir)
         self.validator = ModeValidator()
         self.backup_manager = None  # Will be initialized when needed
+        self.global_config_fixer = GlobalConfigFixer()  # For complex group handling
         
         # Set validation level from environment if specified
         if self.ENV_VALIDATION_LEVEL in os.environ:
@@ -420,6 +423,59 @@ class ModeSync:
             logger.error(error_msg)
             raise SyncError(error_msg)
     
+    def check_for_complex_groups_and_warn(self) -> Dict[str, Any]:
+        """
+        Check if the existing global config contains complex group notation
+        and generate warnings about information that will be stripped.
+        
+        Returns:
+            Dictionary with warning information:
+                - has_complex_groups: bool
+                - stripped_information: dict
+                - warning_messages: list
+        """
+        # Determine which config path to use
+        config_path = self.local_config_path if self.local_config_path else self.global_config_path
+        
+        if not config_path or not config_path.exists():
+            return {
+                'has_complex_groups': False,
+                'stripped_information': {},
+                'warning_messages': []
+            }
+        
+        try:
+            # Load existing config
+            with open(config_path, 'r', encoding='utf-8') as f:
+                existing_config = yaml.safe_load(f)
+            
+            if not existing_config or 'customModes' not in existing_config:
+                return {
+                    'has_complex_groups': False,
+                    'stripped_information': {},
+                    'warning_messages': []
+                }
+            
+            # Check for complex groups using GlobalConfigFixer
+            stripped_info = self.global_config_fixer.get_stripped_information_details(existing_config)
+            warning_messages = self.global_config_fixer.generate_warning_messages(existing_config)
+            
+            has_complex_groups = bool(stripped_info)
+            
+            return {
+                'has_complex_groups': has_complex_groups,
+                'stripped_information': stripped_info,
+                'warning_messages': warning_messages
+            }
+            
+        except Exception as e:
+            logger.warning(f"Could not check existing config for complex groups: {e}")
+            return {
+                'has_complex_groups': False,
+                'stripped_information': {},
+                'warning_messages': []
+            }
+    
     def write_config(self, config: Dict[str, Any]) -> bool:
         """
         Write the configuration to the config file with proper formatting.
@@ -443,12 +499,26 @@ class ModeSync:
             raise SyncError(error_msg)
             
         try:
+            # Check for complex groups before writing (for backwards compatibility)
+            # Note: Main warning display is handled in sync_modes, but this ensures
+            # the check happens even for direct write_config calls
+            warning_info = self.check_for_complex_groups_and_warn()
+            if warning_info['has_complex_groups']:
+                logger.warning("⚠️  Complex group notation detected in existing configuration!")
+                logger.warning("The following information will be stripped during config write:")
+                for warning_msg in warning_info['warning_messages']:
+                    logger.warning(f"   {warning_msg}")
+            
+            # Apply GlobalConfigFixer to strip complex groups from the configuration
+            # This is the actual fix - transform complex groups to simple groups
+            fixed_config = self.global_config_fixer.fix_complex_groups(config)
+            
             # Ensure the parent directory exists
             config_path.parent.mkdir(parents=True, exist_ok=True)
             
             # Use custom YAML dumper for proper formatting and escaping with custom indentation
             with open(config_path, 'w', encoding='utf-8') as f:
-                yaml.dump(config, f, Dumper=CustomYAMLDumper, default_flow_style=False,
+                yaml.dump(fixed_config, f, Dumper=CustomYAMLDumper, default_flow_style=False,
                          allow_unicode=True, sort_keys=False, width=float('inf'), indent=2)
             
             logger.info(f"Wrote configuration to {config_path}")
@@ -540,6 +610,17 @@ class ModeSync:
             if not config['customModes']:
                 logger.error("No valid modes found")
                 return False
+            
+            # Check for complex groups and generate warnings before writing
+            # (enabled by default, can be disabled with enable_complex_group_warnings=False)
+            if options.get('enable_complex_group_warnings', True):
+                warning_info = self.check_for_complex_groups_and_warn()
+                if warning_info['has_complex_groups']:
+                    logger.warning("⚠️  Complex group notation detected in existing configuration!")
+                    logger.warning("The following information will be stripped during sync:")
+                    for warning_msg in warning_info['warning_messages']:
+                        logger.warning(f"   {warning_msg}")
+                    logger.warning("This is expected behavior - sync creates simplified group notation.")
             
             # Write configuration if not dry run
             if not dry_run:
