@@ -70,13 +70,17 @@ class ModeSync:
     ENV_CONFIG_PATH = "ROO_MODES_CONFIG"
     ENV_VALIDATION_LEVEL = "ROO_MODES_VALIDATION_LEVEL"
     
-    def __init__(self, modes_dir: Optional[Path] = None):
+    def __init__(self, modes_dir: Optional[Path] = None, recursive: bool = True):
         """
         Initialize with modes directory path.
         
         Args:
-            modes_dir: Path to directory containing mode YAML files
-                       If None, will try to use ROO_MODES_DIR environment variable
+            modes_dir: Path to directory containing mode YAML files.
+                       If None, will try to use ROO_MODES_DIR environment variable.
+            recursive: Whether to search for modes recursively in subdirectories (default: True).
+                      This parameter is passed to ModeDiscovery for file discovery behavior.
+                      When True, searches all subdirectories using rglob().
+                      When False, searches only the root directory using glob().
         """
         # Get modes directory from env var if not provided
         if modes_dir is None and self.ENV_MODES_DIR in os.environ:
@@ -92,7 +96,7 @@ class ModeSync:
         
         self.global_config_path = None
         self.local_config_path = None
-        self.discovery = ModeDiscovery(self.modes_dir)
+        self.discovery = ModeDiscovery(self.modes_dir, recursive=recursive)
         self.validator = ModeValidator()
         self.backup_manager = None  # Will be initialized when needed
         self.global_config_fixer = GlobalConfigFixer()  # For complex group handling

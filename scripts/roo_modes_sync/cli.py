@@ -55,9 +55,8 @@ def get_default_modes_dir() -> Path:
     if env_modes_dir:
         return Path(env_modes_dir)
         
-    # Default location (relative to this file)
-    script_dir = Path(__file__).resolve().parent
-    return script_dir.parent.parent / "modes"
+    # Default to "modes" directory in current working directory
+    return Path("modes")
 
 
 def sync_global(args: argparse.Namespace) -> int:
@@ -71,8 +70,9 @@ def sync_global(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
-        # Create sync object
-        sync = ModeSync(args.modes_dir)
+        # Create sync object with recursive parameter
+        recursive = not getattr(args, 'no_recurse', False)
+        sync = ModeSync(args.modes_dir, recursive=recursive)
         
         # Set global config path if provided
         if args.config:
@@ -115,8 +115,9 @@ def sync_local(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
-        # Create sync object
-        sync = ModeSync(args.modes_dir)
+        # Create sync object with recursive parameter
+        recursive = not getattr(args, 'no_recurse', False)
+        sync = ModeSync(args.modes_dir, recursive=recursive)
         
         # Set local project directory
         project_dir = Path(args.project_dir).resolve()
@@ -157,8 +158,9 @@ def list_modes(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
-        # Create sync object
-        sync = ModeSync(args.modes_dir)
+        # Create sync object with recursive parameter
+        recursive = not getattr(args, 'no_recurse', False)
+        sync = ModeSync(args.modes_dir, recursive=recursive)
         
         # Get sync status
         status = sync.get_sync_status()
@@ -406,24 +408,31 @@ def main() -> int:
         description="Roo Modes Sync - Synchronize Roo modes configuration"
     )
     
-    # Add global arguments
-    parser.add_argument(
-        "--modes-dir", 
-        type=Path,
-        default=get_default_modes_dir(),
-        help="Directory containing mode YAML files"
-    )
-    
-    # Create subparsers for commands
+    # Create subparsers for commands first
     subparsers = parser.add_subparsers(
         dest="command",
         help="Command to execute"
     )
     subparsers.required = True
     
+    # Add global arguments as a parent parser
+    global_parser = argparse.ArgumentParser(add_help=False)
+    global_parser.add_argument(
+        "--modes-dir",
+        type=Path,
+        default=get_default_modes_dir(),
+        help="Directory containing mode YAML files (default: modes)"
+    )
+    global_parser.add_argument(
+        "--no-recurse",
+        action="store_true",
+        help="Disable recursive search for mode files in subdirectories (default: search recursively)"
+    )
+    
     # Sync global command
     sync_global_parser = subparsers.add_parser(
         "sync-global",
+        parents=[global_parser],
         help="Synchronize modes to global configuration"
     )
     sync_global_parser.add_argument(
@@ -450,6 +459,7 @@ def main() -> int:
     # Sync local command
     sync_local_parser = subparsers.add_parser(
         "sync-local",
+        parents=[global_parser],
         help="Synchronize modes to local project directory"
     )
     sync_local_parser.add_argument(
@@ -476,6 +486,7 @@ def main() -> int:
     # List command
     list_parser = subparsers.add_parser(
         "list",
+        parents=[global_parser],
         help="List available modes and their status"
     )
     list_parser.set_defaults(func=list_modes)
@@ -483,6 +494,7 @@ def main() -> int:
     # Serve MCP command
     serve_parser = subparsers.add_parser(
         "serve",
+        parents=[global_parser],
         help="Run as an MCP server"
     )
     serve_parser.set_defaults(func=serve_mcp)
@@ -490,6 +502,7 @@ def main() -> int:
     # Backup command
     backup_parser = subparsers.add_parser(
         "backup",
+        parents=[global_parser],
         help="Create backups of configuration files",
         description="Create backups of configuration files"
     )
@@ -508,6 +521,7 @@ def main() -> int:
     # Restore command
     restore_parser = subparsers.add_parser(
         "restore",
+        parents=[global_parser],
         help="Restore configuration files from backup",
         description="Restore configuration files from backup"
     )
@@ -530,6 +544,7 @@ def main() -> int:
     # List backups command
     list_backups_parser = subparsers.add_parser(
         "list-backups",
+        parents=[global_parser],
         help="List available backup files",
         description="List available backup files"
     )

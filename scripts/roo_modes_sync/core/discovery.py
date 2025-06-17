@@ -29,14 +29,18 @@ logger = logging.getLogger(__name__)
 class ModeDiscovery:
     """Handles dynamic discovery and categorization of mode files."""
     
-    def __init__(self, modes_dir: Path):
+    def __init__(self, modes_dir: Path, recursive: bool = True):
         """
         Initialize with modes directory path.
         
         Args:
             modes_dir: Path to directory containing mode YAML files
+            recursive: Whether to search subdirectories recursively (default: True).
+                      When True, uses rglob() to find YAML files in all subdirectories.
+                      When False, uses glob() to find YAML files only in the root directory.
         """
         self.modes_dir = modes_dir
+        self.recursive = recursive
         
         # Define category patterns for mode slugs
         self.category_patterns = {
@@ -50,7 +54,32 @@ class ModeDiscovery:
             ]
         }
         
-        logger.debug(f"Initialized ModeDiscovery with directory: {self.modes_dir}")
+        logger.debug(f"Initialized ModeDiscovery with directory: {self.modes_dir}, recursive: {self.recursive}")
+    
+    def _get_yaml_files(self) -> List[Path]:
+        """
+        Get all YAML files in the modes directory.
+        
+        Returns:
+            List of Path objects for YAML files
+        """
+        if not self.modes_dir.exists() or not self.modes_dir.is_dir():
+            return []
+            
+        try:
+            if self.recursive:
+                # Use recursive glob to find YAML files in subdirectories
+                yaml_files = list(self.modes_dir.rglob("*.yaml"))
+                logger.debug(f"Found {len(yaml_files)} YAML files recursively in {self.modes_dir}")
+            else:
+                # Use non-recursive glob to find YAML files only in root directory
+                yaml_files = list(self.modes_dir.glob("*.yaml"))
+                logger.debug(f"Found {len(yaml_files)} YAML files non-recursively in {self.modes_dir}")
+            
+            return yaml_files
+        except Exception as e:
+            logger.error(f"Error accessing modes directory {self.modes_dir}: {str(e)}")
+            return []
     
     def discover_all_modes(self) -> Dict[str, List[str]]:
         """
@@ -66,22 +95,15 @@ class ModeDiscovery:
             'discovered': []
         }
         
-        # Handle non-existent directory gracefully
-        if not self.modes_dir.exists():
-            logger.warning(f"Modes directory does not exist: {self.modes_dir}")
-            return categorized_modes
-        
-        # Handle case where modes_dir is not a directory
-        if not self.modes_dir.is_dir():
-            logger.warning(f"Modes path is not a directory: {self.modes_dir}")
-            return categorized_modes
-        
-        # Get all YAML files in the directory
-        try:
-            yaml_files = list(self.modes_dir.glob("*.yaml"))
-            logger.debug(f"Found {len(yaml_files)} YAML files in {self.modes_dir}")
-        except Exception as e:
-            logger.error(f"Error accessing modes directory {self.modes_dir}: {str(e)}")
+        # Get all YAML files using the appropriate search method
+        yaml_files = self._get_yaml_files()
+        if not yaml_files:
+            if not self.modes_dir.exists():
+                logger.warning(f"Modes directory does not exist: {self.modes_dir}")
+            elif not self.modes_dir.is_dir():
+                logger.warning(f"Modes path is not a directory: {self.modes_dir}")
+            else:
+                logger.info(f"No YAML files found in {self.modes_dir}")
             return categorized_modes
         
         # Process each YAML file
