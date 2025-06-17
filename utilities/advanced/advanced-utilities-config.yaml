@@ -1,0 +1,223 @@
+# Advanced Utilities Integration Configuration
+# Connects knowledge quality enhancement, semantic graphs, and temporal management
+
+advanced_utilities_integration:
+  version: "1.0.0"
+  description: "Integration layer for advanced knowledge management utilities"
+  
+  # Core components configuration
+  components:
+    knowledge_quality:
+      enabled: true
+      module_path: "./knowledge-quality-enhancement/knowledge-quality-core.js"
+      default_dimensions: ["completeness", "accuracy", "consistency", "clarity", "relevance", "structure", "timeliness", "traceability"]
+      quality_thresholds:
+        minimum_acceptable: 60
+        target_quality: 80
+        excellence_threshold: 90
+      enhancement_types: ["completeness", "clarity", "structure", "metadata", "references", "formatting"]
+      
+    semantic_knowledge_graph:
+      enabled: true
+      module_path: "./semantic-knowledge-graph/semantic-knowledge-graph-core.js"
+      similarity_threshold: 0.3
+      default_search_limit: 10
+      relationship_types: ["semantic_similarity", "conceptual_overlap", "thematic_connection", "structural_similarity"]
+      supported_item_types: ["decision", "system_pattern", "custom_data", "progress_entry"]
+      
+    temporal_knowledge:
+      enabled: true
+      module_path: "./temporal-knowledge-management/temporal-knowledge-core.js"
+      versioning_strategy: "semantic"
+      retention_policy: "keep_all"
+      dependency_tracking: true
+      lifecycle_states: ["draft", "active", "deprecated", "archived"]
+      
+  # Integration points with cross-mode workflows
+  workflow_integration:
+    enhanced_execution:
+      enabled: true
+      pre_execution_steps:
+        - assess_workflow_quality
+        - discover_semantic_relationships
+        - create_temporal_snapshot
+      post_execution_steps:
+        - enhance_workflow_quality
+        - update_semantic_relationships
+        - create_temporal_version
+        
+    quality_gates:
+      minimum_input_quality: 50
+      minimum_output_quality: 70
+      block_on_quality_failure: false
+      quality_improvement_required: true
+      
+    semantic_enhancement:
+      auto_discover_relationships: true
+      relationship_threshold: 0.4
+      max_relationships_per_item: 10
+      create_missing_links: true
+      
+    temporal_tracking:
+      auto_version_outputs: true
+      track_workflow_lineage: true
+      impact_analysis_depth: 2
+      dependency_validation: true
+
+  # ConPort integration settings
+  conport_integration:
+    workspace_id_source: "environment"
+    auto_log_artifacts: true
+    artifact_category: "workflow_artifacts"
+    relationship_logging: true
+    quality_metrics_logging: true
+    temporal_metadata_enrichment: true
+    
+  # Performance and optimization
+  performance:
+    cache_quality_assessments: true
+    cache_duration_minutes: 30
+    parallel_processing: true
+    max_concurrent_operations: 5
+    timeout_seconds: 120
+    
+  # Error handling and fallbacks
+  error_handling:
+    fallback_to_standard_workflow: true
+    log_enhancement_failures: true
+    continue_on_utility_failure: true
+    quality_assessment_retries: 2
+    semantic_analysis_retries: 1
+    temporal_operation_retries: 3
+
+# Workflow enhancement mappings
+workflow_enhancements:
+  # Architect mode enhancements
+  architect_workflows:
+    requirements_analysis:
+      quality_dimensions: ["completeness", "clarity", "relevance", "structure"]
+      semantic_discovery: ["requirements", "stakeholders", "constraints"]
+      temporal_tracking: true
+      
+    system_design:
+      quality_dimensions: ["completeness", "accuracy", "consistency", "structure"]
+      semantic_discovery: ["architecture", "patterns", "technologies"]
+      temporal_tracking: true
+      dependency_analysis: true
+      
+    technology_evaluation:
+      quality_dimensions: ["accuracy", "completeness", "relevance", "timeliness"]
+      semantic_discovery: ["technologies", "alternatives", "criteria"]
+      temporal_tracking: true
+      impact_analysis: true
+
+  # Code mode enhancements  
+  code_workflows:
+    implementation_planning:
+      quality_dimensions: ["completeness", "clarity", "structure", "traceability"]
+      semantic_discovery: ["implementation", "patterns", "dependencies"]
+      temporal_tracking: true
+      
+    code_review:
+      quality_dimensions: ["accuracy", "consistency", "clarity", "structure"]
+      semantic_discovery: ["code_patterns", "best_practices", "issues"]
+      temporal_tracking: true
+      
+    refactoring:
+      quality_dimensions: ["structure", "clarity", "consistency", "traceability"]
+      semantic_discovery: ["refactoring_patterns", "code_smells", "improvements"]
+      temporal_tracking: true
+      impact_analysis: true
+
+  # Debug mode enhancements
+  debug_workflows:
+    issue_analysis:
+      quality_dimensions: ["accuracy", "completeness", "clarity", "traceability"]
+      semantic_discovery: ["bugs", "symptoms", "causes", "solutions"]
+      temporal_tracking: true
+      
+    solution_validation:
+      quality_dimensions: ["accuracy", "completeness", "consistency", "timeliness"]
+      semantic_discovery: ["solutions", "tests", "verification"]
+      temporal_tracking: true
+      impact_analysis: true
+
+  # Docs mode enhancements
+  docs_workflows:
+    documentation_creation:
+      quality_dimensions: ["completeness", "clarity", "structure", "relevance"]
+      semantic_discovery: ["documentation", "topics", "audience"]
+      temporal_tracking: true
+      
+    content_organization:
+      quality_dimensions: ["structure", "consistency", "clarity", "relevance"]
+      semantic_discovery: ["content", "relationships", "navigation"]
+      temporal_tracking: true
+
+  # Orchestrator mode enhancements
+  orchestrator_workflows:
+    workflow_coordination:
+      quality_dimensions: ["completeness", "accuracy", "consistency", "timeliness"]
+      semantic_discovery: ["workflows", "dependencies", "coordination"]
+      temporal_tracking: true
+      impact_analysis: true
+
+# Integration test configurations
+integration_tests:
+  quality_assessment:
+    test_artifacts:
+      - type: "decision"
+        content: "Sample architectural decision for testing"
+        expected_quality_score: ">= 70"
+      - type: "system_pattern"
+        content: "Sample design pattern for testing"
+        expected_quality_score: ">= 75"
+        
+  semantic_discovery:
+    test_queries:
+      - query: "microservices architecture"
+        expected_results: ">= 3"
+      - query: "database design patterns"
+        expected_results: ">= 2"
+        
+  temporal_operations:
+    test_scenarios:
+      - operation: "create_version"
+        artifact_type: "test_artifact"
+        expected_result: "success"
+      - operation: "analyze_impact"
+        depth: 2
+        expected_result: "impact_data"
+
+# Monitoring and metrics
+monitoring:
+  quality_metrics:
+    track_improvement_trends: true
+    alert_on_quality_degradation: true
+    quality_threshold_violations: true
+    
+  semantic_metrics:
+    track_relationship_growth: true
+    monitor_discovery_accuracy: true
+    alert_on_broken_relationships: true
+    
+  temporal_metrics:
+    track_version_growth: true
+    monitor_dependency_health: true
+    alert_on_impact_violations: true
+    
+  performance_metrics:
+    track_execution_times: true
+    monitor_enhancement_overhead: true
+    alert_on_performance_degradation: true
+
+# Feature flags for gradual rollout
+feature_flags:
+  enhanced_workflow_execution: true
+  automatic_quality_enhancement: true
+  semantic_relationship_discovery: true
+  temporal_version_tracking: true
+  comprehensive_impact_analysis: true
+  workflow_knowledge_graphs: true
+  advanced_error_handling: true
+  performance_optimization: true

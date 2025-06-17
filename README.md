@@ -1,192 +1,90 @@
 # Roo Modes Collection
 
-A sophisticated AI system extension library providing enhanced modes for the Roo AI assistant, featuring comprehensive ConPort knowledge management integration and structured development workflows.
+**Supercharge your AI assistant with specialized modes for different tasks**
 
-## 🏗️ Project Structure
+> Transform your AI from a general assistant into a specialized expert that remembers what it learns and gets better over time.
 
-This project follows the **Three-Layer Component Architecture Pattern** with phase-based organization:
+## 🚀 What This Does
 
-```
-roo-conport-modes/
-├── modes/                    # Core mode definitions (validation, core, integration)
-├── templates/               # Mode templates and scaffolding
-├── docs/                    # Documentation hub
-│   ├── guides/             # Mode enhancement guides and how-tos
-│   ├── examples/           # Usage examples and demonstrations
-│   ├── analysis/           # Technical design documentation
-│   └── phases/             # Phase-specific documentation
-│       ├── phase-1/        # Foundation & Core Architecture
-│       ├── phase-2/        # Mode Enhancements
-│       ├── phase-3/        # Advanced Knowledge Management
-│       └── phase-4/        # Current development phase
-├── utilities/              # Utility functions and enhancements
-│   ├── core/              # Core utility functions
-│   └── enhancements/      # Mode enhancement utilities
-├── scripts/               # Development and automation scripts
-├── tools/                 # Development tools and utilities
-├── tests/                 # Test suites
-└── context_portal/        # ConPort knowledge management database
-```
+Instead of using the same AI for everything, this gives you:
 
-## 📚 Documentation Guide
+- **🏗️ Architect Mode** - AI becomes a system designer and technical planner
+- **💻 Code Mode** - AI becomes a coding specialist with pattern recognition  
+- **🪲 Debug Mode** - AI becomes a troubleshooting expert with diagnostic tools
+- **📝 Docs Mode** - AI becomes a documentation specialist
+- **❓ Ask Mode** - AI becomes a research assistant with deep context
 
-### Quick Navigation
+**The key difference**: Your AI remembers decisions, learns patterns, and builds knowledge over time.
 
-- **Getting Started**: [`docs/guides/knowledge-first-initialization-guide.md`](docs/guides/knowledge-first-initialization-guide.md)
-- **Mode Enhancements**: [`docs/guides/`](docs/guides/) - Individual mode enhancement documentation
-- **Usage Examples**: [`docs/examples/`](docs/examples/) - Practical implementation examples
-- **Technical Analysis**: [`docs/analysis/`](docs/analysis/) - Deep-dive technical documentation
-- **Development Phases**: [`docs/phases/`](docs/phases/) - Historical and current development documentation
+## ⚡ Quick Start (2 minutes)
 
-### Documentation Categories
+1. **Copy the modes you want** from [`modes/`](modes/) to your Roo configuration
+2. **Start using them** - AI automatically gets enhanced capabilities
+3. **Watch them improve** - AI learns and remembers for next time
 
-#### 🎯 Guides (`docs/guides/`)
-Practical how-to documentation for implementing and using mode enhancements:
-- Mode-specific enhancement guides (ask, code, debug, architect, etc.)
-- Knowledge management workflows
-- ConPort validation strategies
-- Cross-mode integration patterns
+That's it. No complex setup required.
 
-#### 💡 Examples (`docs/examples/`)
-Working code examples and usage demonstrations:
-- Mode enhancement usage examples
-- Phase-specific implementation examples
-- Integration pattern demonstrations
+## 📁 What's in This Project
 
-#### 🔬 Analysis (`docs/analysis/`)
-Technical design documentation and architectural analysis:
-- Sync system design and diagnostics
-- Package architecture documentation
-- TDD strategies and validation enhancements
+### 🎭 Ready-to-Use Modes
+- [`modes/`](modes/) - Drop these into your Roo setup and go
+- [`modes/hybrid/`](modes/hybrid/) - Advanced modes that combine multiple capabilities
 
-#### 📈 Phases (`docs/phases/`)
-Development phase documentation showing project evolution:
-- **Phase 1**: Foundation & Core Architecture
-- **Phase 2**: Mode Enhancements 
-- **Phase 3**: Advanced Knowledge Management
-- **Phase 4**: Current Development (AMO integration, workflow optimization)
+### 📖 Simple Guides  
+- [`SIMPLE_SETUP.md`](SIMPLE_SETUP.md) - 5-minute setup walkthrough
+- [`WHAT_EACH_MODE_DOES.md`](WHAT_EACH_MODE_DOES.md) - Plain English mode explanations
+- [`COMMON_WORKFLOWS.md`](COMMON_WORKFLOWS.md) - Typical usage patterns
 
-## 🛠️ Utilities Organization
+### 🛠️ For Advanced Users
+- [`utilities/`](utilities/) - Under-the-hood enhancements
+- [`docs/`](docs/) - Technical documentation
+- [`templates/`](templates/) - Create your own modes
 
-### Core Utilities (`utilities/core/`)
-Fundamental utility functions for knowledge management:
-- `conport-validation-manager.js` - ConPort data validation
-- `data-locality-detector.js` - Data locality detection
-- `knowledge-first-guidelines.js` - Knowledge-first development patterns
-- `knowledge-metrics-dashboard.js` - Knowledge quality metrics
-- `validation-checkpoints.js` - Validation checkpoint system
+## 🎯 Popular Use Cases
 
-### Enhancement Utilities (`utilities/enhancements/`)
-Mode-specific enhancement utilities and integration helpers.
+**Building Software?**
+→ Use Architect Mode for planning, Code Mode for implementation, Debug Mode for fixing issues
 
-## 🧩 Mode Architecture
+**Writing Documentation?** 
+→ Use Docs Mode for structured content creation and maintenance
 
-Each mode follows the **Three-Layer Component Architecture**:
+**Research Projects?**
+→ Use Ask Mode for intelligent information gathering and synthesis
 
-1. **Validation Layer**: Input validation and constraint checking
-2. **Core Layer**: Primary mode logic and functionality  
-3. **Integration Layer**: ConPort integration and knowledge management
+**Complex Projects?**
+→ Use Orchestrator Mode to coordinate multiple specialized modes
 
-## 📊 Development Phases
+## 🧠 The Knowledge Advantage
 
-### Current Status: Phase 4
-**Focus**: AMO (Adaptive Mode Orchestration) integration and workflow optimization
+Unlike regular AI, these modes:
+- **Remember decisions** you make together
+- **Learn patterns** from your projects  
+- **Build context** over time
+- **Share knowledge** between different tasks
 
-### Historical Development
-- **Phase 1** (Complete): Foundation architecture and core modes
-- **Phase 2** (Complete): Mode enhancement system
-- **Phase 3** (Complete): Advanced knowledge management
-- **Phase 4** (In Progress): AMO integration and optimization
+This means your AI gets smarter about your specific work, not just general topics.
 
-## 🔧 Development Setup
+## 🎨 Customization
 
-### Prerequisites
-- Node.js for JavaScript utilities
-- Python 3.x for automation scripts
-- ConPort MCP server for knowledge management
+**Want to modify a mode?** Edit the YAML files - they're designed to be readable and changeable.
 
-### Quick Start
-```bash
-# Clone and navigate to project
-git clone <repository-url>
-cd roo-conport-modes
+**Want to create new modes?** Use the templates in [`templates/`](templates/) as starting points.
 
-# Initialize ConPort (if needed)
-# ConPort will be created automatically when first used
+**Want to see how it works?** Check [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) for a simple technical overview.
 
-# Run tests
-cd scripts && python run_tests.py
-```
+## 📚 Documentation Levels
 
-### Testing
-- **Unit Tests**: `tests/unit/` - Component-level testing
-- **Integration Tests**: `scripts/roo_modes_sync/tests/` - System integration testing
-- **Test Runner**: `scripts/run_tests.py` - Unified test execution
+- **Just want to use it?** → [`SIMPLE_SETUP.md`](SIMPLE_SETUP.md)
+- **Want to understand each mode?** → [`WHAT_EACH_MODE_DOES.md`](WHAT_EACH_MODE_DOES.md)  
+- **Ready to customize?** → [`CUSTOMIZATION_GUIDE.md`](CUSTOMIZATION_GUIDE.md)
+- **Need technical details?** → [`docs/`](docs/) directory
 
-## 📋 Key Features
+## 🤝 Getting Help
 
-### 🧠 ConPort Knowledge Management
-- Comprehensive decision logging and tracking
-- System pattern documentation
-- Progress tracking with relationship mapping
-- Custom data storage for project-specific information
-
-### 🎭 Enhanced Modes
-- **Code Mode**: Advanced coding assistance with pattern recognition
-- **Architect Mode**: System design and planning capabilities
-- **Debug Mode**: Comprehensive debugging and troubleshooting
-- **Ask Mode**: Intelligent Q&A with context awareness
-- **Orchestrator Mode**: Workflow coordination and task delegation
-- **ConPort Maintenance Mode**: Knowledge database management
-
-### 🔄 Cross-Mode Integration
-- Seamless knowledge sharing between modes
-- Unified context management
-- Temporal knowledge tracking
-- Automated workflow orchestration
-
-## 🎯 ConPort Integration
-
-This project leverages ConPort for comprehensive knowledge management:
-
-- **Decision Tracking**: All architectural and implementation decisions
-- **Pattern Documentation**: Reusable system and coding patterns  
-- **Progress Management**: Development milestone tracking
-- **Custom Knowledge**: Project-specific information and constraints
-- **Relationship Mapping**: Knowledge graph with interconnected concepts
-
-### ConPort Decision History
-Key decisions are tracked and can be referenced:
-- **Decision #85**: Directory structure standardization (ongoing)
-- **System Pattern #55**: Three-Layer Component Architecture Pattern
-
-## 🤝 Contributing
-
-### Development Workflow
-1. Follow the Three-Layer Architecture Pattern
-2. Document decisions in ConPort using [`log_decision`](utilities/core/conport-validation-manager.js)
-3. Update progress tracking for significant milestones
-4. Add usage examples for new features
-5. Update relevant documentation in [`docs/guides/`](docs/guides/)
-
-### Code Organization
-- Place new modes in [`modes/`](modes/) following established patterns
-- Add utilities to [`utilities/core/`](utilities/core/) or [`utilities/enhancements/`](utilities/enhancements/)
-- Document in [`docs/guides/`](docs/guides/) with examples in [`docs/examples/`](docs/examples/)
-- Use ConPort for decision and pattern documentation
-
-## 📖 Further Reading
-
-- **Architecture Overview**: [`docs/analysis/sync-system-package-design.md`](docs/analysis/sync-system-package-design.md)
-- **Knowledge Management**: [`docs/guides/knowledge-first-guidelines.md`](docs/guides/knowledge-first-guidelines.md)
-- **Current Development**: [`docs/phases/phase-4/`](docs/phases/phase-4/)
-- **ConPort Guide**: [`docs/guides/conport-validation-strategy.md`](docs/guides/conport-validation-strategy.md)
+**Quick Questions**: Check [`FAQ.md`](FAQ.md)
+**Setup Issues**: See [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md)  
+**Advanced Topics**: Browse [`docs/guides/`](docs/guides/)
 
 ---
 
-**Version**: Phase 4 Development
-**Architecture**: Three-Layer Component Pattern
-**Knowledge Management**: ConPort-integrated
-**Status**: Active Development
-
-This README reflects the clean reorganization completed in [ConPort Decision #85] continuing the established standardization work.
+**Ready?** Start with [`SIMPLE_SETUP.md`](SIMPLE_SETUP.md) to get going in 5 minutes.
