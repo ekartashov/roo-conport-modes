@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-The Autonomous Mapping Orchestrator (AMO) is a Phase 4 component responsible for dynamically discovering, mapping, and organizing knowledge relationships across the ConPort ecosystem. AMO transforms implicit connections between knowledge artifacts into explicit, navigable knowledge graphs that enable advanced knowledge traversal, discovery, and inference.
+The Autonomous Mapping Orchestrator (AMO) is an autonomous framework responsible for dynamically discovering, mapping, and organizing knowledge relationships across the ConPort ecosystem. AMO transforms implicit connections between knowledge artifacts into explicit, navigable knowledge graphs that enable advanced knowledge traversal, discovery, and inference.
 
 ## 2. Strategic Purpose
 
@@ -42,7 +42,7 @@ AMO addresses several critical knowledge management challenges:
 
 ## 4. Architecture Design
 
-Following the established Phase 4 architecture pattern, AMO consists of three primary layers:
+Following the established autonomous framework architecture pattern, AMO consists of three primary layers:
 
 ### 4.1 Validation Layer (`amo-validation.js`)
 
@@ -96,7 +96,7 @@ The core layer contains the primary mapping and relationship management logic:
 
 ### 4.3 Integration Layer (`amo-integration.js`)
 
-The integration layer connects AMO with ConPort and other Phase 4 components:
+The integration layer connects AMO with ConPort and other autonomous frameworks:
 
 - **ConPortAMOIntegration**: Integrates AMO with ConPort
   - Maps ConPort items to knowledge graph nodes
@@ -148,10 +148,10 @@ AMO operates with the following typical interaction flows:
    - Knowledge graph is updated with new relationships
 
 4. **Integration Support Flow**:
-   - Phase 4 component requests relationship context
+   - Autonomous framework requests relationship context
    - AMO provides relevant knowledge neighborhood
-   - Relationship insights are integrated into component operations
-   - Components report back relationship efficacy
+   - Relationship insights are integrated into framework operations
+   - Frameworks report back relationship efficacy
    - AMO adjusts relationship scoring based on efficacy feedback
 
 ## 6. Key Design Principles
@@ -165,7 +165,7 @@ AMO adheres to the following design principles:
 - **Scalability**: Architecture supports scaling to large knowledge graphs
 - **Performance**: Optimization for rapid traversal and query execution
 - **Evolvability**: Knowledge graphs evolve as knowledge and relationships change
-- **Integration**: Seamless integration with ConPort and Phase 4 components
+- **Integration**: Seamless integration with ConPort and autonomous frameworks
 
 ## 7. Implementation Priorities
 
@@ -175,7 +175,7 @@ The initial implementation of AMO will focus on:
 2. Establishing fundamental knowledge graph structures
 3. Integrating with ConPort for persistence
 4. Providing basic query capabilities
-5. Supporting KDAP and AKAF with relationship context
+5. Supporting other autonomous frameworks with relationship context
 
 Advanced features to be implemented in subsequent iterations include:
 
@@ -263,17 +263,17 @@ AMO's success will be measured by:
 2. **Relationship Quality**: Accuracy and relevance of discovered relationships
 3. **Knowledge Connectivity**: Average connectivity of knowledge artifacts
 4. **Query Performance**: Speed and accuracy of knowledge graph queries
-5. **Integration Effectiveness**: Value added to other Phase 4 components
+5. **Integration Effectiveness**: Value added to other autonomous frameworks
 6. **User Navigation Impact**: Improvements in knowledge navigation and discovery
 
-## 10. Integration with Phase 4
+## 10. Integration with Autonomous Frameworks
 
-AMO plays a crucial role in Phase 4 by providing relationship context that enhances other components:
+AMO plays a crucial role by providing relationship context that enhances other frameworks:
 
 - **KDAP**: Enhanced planning with relationship-aware knowledge selection
 - **AKAF**: Improved pattern application with relationship context
 - **SIVS**: More accurate validation with relationship neighborhood insights
 - **KSE**: Richer knowledge synthesis with relationship-aware aggregation
-- **CCF**: More effective collaboration with relationship-based recommendations
+- **CCF**: More effective continuity with relationship-based recommendations
 
 By creating a navigable knowledge graph, AMO serves as the connective tissue between disparate knowledge artifacts, enabling more intelligent and context-aware knowledge operations across the ConPort ecosystem.

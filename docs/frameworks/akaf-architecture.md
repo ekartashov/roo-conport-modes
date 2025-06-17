@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Adaptive Knowledge Application Framework (AKAF) is the second core component of Phase 4, designed to intelligently adapt and apply knowledge based on context. While the Knowledge-Driven Autonomous Planning (KDAP) component focuses on planning, AKAF focuses on execution - taking knowledge that has been retrieved and transforming it into actionable solutions that can be directly applied to the user's context.
+The Adaptive Knowledge Application Framework (AKAF) is designed to intelligently adapt and apply knowledge based on context. While the Knowledge-Driven Autonomous Planning (KDAP) framework focuses on planning, AKAF focuses on execution - taking knowledge that has been retrieved and transforming it into actionable solutions that can be directly applied to the user's context.
 
 AKAF addresses a critical challenge in knowledge management systems: knowledge retrieved from repositories is rarely directly applicable to a user's specific context without some form of adaptation. The framework provides a systematic approach to:
 
@@ -46,7 +46,7 @@ AKAF follows a layered architecture with three primary layers:
 
 1. **Validation Layer**: Ensures quality and consistency of inputs and outputs at each step
 2. **Core Layer**: Implements the main adaptation and application logic
-3. **Integration Layer**: Connects with ConPort and other Phase 4 components
+3. **Integration Layer**: Connects with ConPort and other autonomous frameworks
 
 ### Architecture Diagram
 
@@ -93,8 +93,8 @@ AKAF follows a layered architecture with three primary layers:
             │                           │
 ┌───────────▼───────────┐      ┌────────▼──────────┐
 │                       │      │                   │
-│     ConPort System    │      │   Other Phase 4   │
-│                       │      │    Components     │
+│     ConPort System    │      │ Other Autonomous  │
+│                       │      │   Frameworks      │
 └───────────────────────┘      └───────────────────┘
 ```
 
@@ -132,7 +132,7 @@ The core layer is designed to be extensible, allowing for new strategies and pat
 
 ### Integration Layer
 
-The integration layer connects AKAF with ConPort and other Phase 4 components. It includes specialized implementations that leverage ConPort for:
+The integration layer connects AKAF with ConPort and other autonomous frameworks. It includes specialized implementations that leverage ConPort for:
 
 1. **Knowledge Retrieval**: Retrieves knowledge items from ConPort based on context analysis.
 2. **Strategy Selection**: Retrieves adaptation strategies stored in ConPort.
@@ -175,7 +175,7 @@ Application patterns define how adapted knowledge is applied in practice. Differ
 - **Documentation Generation**: For creating documentation from knowledge
 - **Decision Support**: For using knowledge to support decision-making processes
 
-Patterns are executed by the application engine, which may leverage other Phase 4 components like SIVS for validation.
+Patterns are executed by the application engine, which may leverage other autonomous frameworks like SIVS for validation.
 
 ### Feedback Loop
 
@@ -188,9 +188,9 @@ AKAF includes a feedback loop that captures information about adaptation and app
 
 The feedback is logged to ConPort, enabling continuous improvement of the knowledge ecosystem.
 
-## Integration with Other Phase 4 Components
+## Integration with Other Autonomous Frameworks
 
-AKAF integrates with other Phase 4 components in the following ways:
+AKAF integrates with other autonomous frameworks in the following ways:
 
 ### Knowledge-Driven Autonomous Planning (KDAP)
 
@@ -215,7 +215,7 @@ While not directly integrated in the current implementation, AKAF's adaptation s
 The simplest way to use AKAF is through the `initializeAKAF` function, which returns an initialized instance with all the necessary components:
 
 ```javascript
-const akaf = require('./utilities/phase-4/akaf');
+const akaf = require('./utilities/frameworks/akaf');
 
 const akafInstance = akaf.initializeAKAF({
   conportClient: myConPortClient
@@ -244,7 +244,7 @@ const {
   AdaptiveKnowledgeController, 
   ConPortKnowledgeRetriever,
   AKAFIntegration 
-} = require('./utilities/phase-4/akaf');
+} = require('./utilities/frameworks/akaf');
 
 // Create custom knowledge retriever
 class CustomKnowledgeRetriever extends ConPortKnowledgeRetriever {
@@ -315,10 +315,10 @@ While AKAF is now fully implemented, future enhancements could include:
 
 1. **Enhanced Strategy Repository**: Developing a more comprehensive repository of adaptation strategies for different domains
 2. **Advanced Application Patterns**: Creating more sophisticated patterns for knowledge application
-3. **Deeper Integration**: Further integration with other Phase 4 components, especially KSE and CCF
+3. **Deeper Integration**: Further integration with other autonomous frameworks, especially KSE and CCF
 4. **Learning Capabilities**: Enhancing the feedback loop with more advanced learning mechanisms
 5. **Performance Optimization**: Optimizing knowledge retrieval and adaptation for large-scale knowledge bases
 
 ## Conclusion
 
-The Adaptive Knowledge Application Framework (AKAF) provides a powerful system for adapting and applying knowledge based on context. By bridging the gap between stored knowledge and practical application, AKAF enhances the value of the ConPort knowledge ecosystem and contributes to the transformative goals of Phase 4.
+The Adaptive Knowledge Application Framework (AKAF) provides a powerful system for adapting and applying knowledge based on context. By bridging the gap between stored knowledge and practical application, AKAF enhances the value of the ConPort knowledge ecosystem and supports the broader autonomous framework ecosystem.

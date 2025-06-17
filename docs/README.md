@@ -6,6 +6,8 @@ Welcome to the documentation hub for the Roo AI Modes project. This directory co
 
 The documentation is organized into the following main sections:
 
+-   **[Frameworks (`frameworks/`)](frameworks/):** Architecture documentation for autonomous frameworks (AKAF, KDAP, KSE, AMO, SIVS, CCF)
+-   **[Advanced (`advanced/`)](advanced/):** Documentation for advanced knowledge management systems (analytics, workflows, graphs)
 -   **[Analysis (`analysis/`)](analysis/):** In-depth explorations, design documents, and rationale behind specific features or architectural decisions.
 -   **[Examples (`examples/`)](examples/):** Practical, real-world usage scenarios for different modes, demonstrating their capabilities.
 -   **[Guides (`guides/`)](guides/):** Comprehensive how-to documents, tutorials, and reference materials for installing, configuring, and using various modes and systems.
@@ -16,6 +18,29 @@ Additionally, you'll find:
 ## Key Documents
 
 Below are some key documents you might find useful, categorized by section.
+
+### Frameworks
+
+The `frameworks/` directory contains architecture documentation for production-ready autonomous frameworks:
+
+-   [`README.md`](frameworks/README.md): Overview of all autonomous frameworks and their capabilities
+-   [`akaf-architecture.md`](frameworks/akaf-architecture.md): Adaptive Knowledge Application Framework architecture
+-   [`kdap-architecture.md`](frameworks/kdap-architecture.md): Knowledge-Driven Autonomous Planning architecture
+-   [`kse-architecture.md`](frameworks/kse-architecture.md): Knowledge Synthesis Engine architecture
+-   [`amo-architecture.md`](frameworks/amo-architecture.md): Autonomous Mapping Orchestrator architecture
+-   [`sivs-architecture.md`](frameworks/sivs-architecture.md): Self-Improving Validation System architecture
+-   [`ccf-architecture.md`](frameworks/ccf-architecture.md): Cognitive Continuity Framework architecture
+
+### Advanced
+
+The `advanced/` directory contains documentation for advanced knowledge management systems:
+
+-   [`README.md`](advanced/README.md): Overview of all advanced knowledge management systems
+-   [`conport-analytics.md`](advanced/conport-analytics.md): Comprehensive analytics for knowledge systems
+-   [`knowledge-quality-enhancement.md`](advanced/knowledge-quality-enhancement.md): Quality assessment and improvement
+-   [`cross-mode-knowledge-workflows.md`](advanced/cross-mode-knowledge-workflows.md): Knowledge transfer between modes
+-   [`semantic-knowledge-graph.md`](advanced/semantic-knowledge-graph.md): Relationship mapping and semantic analysis
+-   [`temporal-knowledge-management.md`](advanced/temporal-knowledge-management.md): Time-aware knowledge systems
 
 ### Analysis
 

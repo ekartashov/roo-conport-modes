@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Cognitive Continuity Framework (CCF) ensures knowledge persistence and continuity across different AI agents, sessions, and time periods. CCF is a critical component of the Phase 4 cognitive architecture, enabling seamless knowledge transfer between different system components and maintaining cognitive coherence over time.
+The Cognitive Continuity Framework (CCF) ensures knowledge persistence and continuity across different AI agents, sessions, and time periods. CCF is a critical autonomous framework enabling seamless knowledge transfer between different system components and maintaining cognitive coherence over time.
 
 CCF manages context states, tracks knowledge transitions, coordinates sessions, and provides mechanisms for continuity operations such as saving, loading, transferring, merging, and diffing cognitive contexts.
 
@@ -173,7 +173,7 @@ const synthesisResult = await ccf.synthesizeContextHistory({
 
 ## Integration Points
 
-CCF integrates with other Phase 4 components as follows:
+CCF integrates with other autonomous frameworks as follows:
 
 1. **ConPort**
    - Primary storage backend for CCF data

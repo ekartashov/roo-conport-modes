@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Knowledge-Driven Autonomous Planning (KDAP) system is a core component of Phase 4 that enables ConPort to autonomously identify knowledge gaps, plan knowledge acquisition activities, and execute those plans to continuously improve the knowledge base without requiring constant human guidance.
+The Knowledge-Driven Autonomous Planning (KDAP) system enables ConPort to autonomously identify knowledge gaps, plan knowledge acquisition activities, and execute those plans to continuously improve the knowledge base without requiring constant human guidance.
 
 ## Design Principles
 
@@ -91,13 +91,13 @@ This component evaluates the outcomes of knowledge acquisition:
 
 Responsible for:
 - Connecting KDAP with existing ConPort components
-- Facilitating communication with other Phase 4 systems
+- Facilitating communication with other autonomous frameworks
 - Providing APIs for external interaction with KDAP
 - Managing state persistence and synchronization
 
 Key components:
 - ConPort Knowledge Interface
-- Phase 4 Component Connectors
+- Autonomous Framework Connectors
 - External API Handler
 - State Management System
 
@@ -118,7 +118,7 @@ Key components:
 - Writes new knowledge and relationships back to ConPort
 - Utilizes ConPort's semantic search capabilities for gap analysis
 
-### Integration with Other Phase 4 Components
+### Integration with Other Autonomous Frameworks
 
 - **Adaptive Knowledge Application Framework (AKAF)**: Coordinates to ensure acquired knowledge is optimized for application
 - **Self-Improving Validation System (SIVS)**: Leverages improved validation patterns for knowledge quality assessment

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Strategic Insight Validation System (SIVS) is the third core component of Phase 4, designed to ensure the quality, relevance, and applicability of knowledge before it's used in decision-making or implementation. While KDAP focuses on planning and AKAF focuses on adaptation and application, SIVS focuses on validation - systematically verifying that knowledge meets quality standards and is appropriate for use in specific contexts.
+The Strategic Insight Validation System (SIVS) is designed to ensure the quality, relevance, and applicability of knowledge before it's used in decision-making or implementation. While KDAP focuses on planning and AKAF focuses on adaptation and application, SIVS focuses on validation - systematically verifying that knowledge meets quality standards and is appropriate for use in specific contexts.
 
 SIVS addresses a critical challenge in knowledge-driven systems: the risk of applying incorrect, outdated, or misaligned knowledge. The system provides a comprehensive validation framework that can:
 
@@ -46,7 +46,7 @@ SIVS follows a layered architecture with three primary layers:
 
 1. **Validation Layer**: Provides specialized validation functions for different validation dimensions
 2. **Core Layer**: Implements the main validation logic and orchestration
-3. **Integration Layer**: Connects with ConPort and other Phase 4 components
+3. **Integration Layer**: Connects with ConPort and other autonomous frameworks
 
 ### Architecture Diagram
 
@@ -89,8 +89,8 @@ SIVS follows a layered architecture with three primary layers:
             │                           │            └─────────────┘ │
 ┌───────────▼───────────┐      ┌────────▼──────────┐                │
 │                       │      │                   │                │
-│     ConPort System    │      │   Other Phase 4   │                │
-│                       │      │    Components     │                │
+│     ConPort System    │      │ Other Autonomous  │                │
+│                       │      │   Frameworks      │                │
 └───────────────────────┘      └───────────────────┘                │
 ```
 
@@ -119,7 +119,7 @@ The core layer is responsible for managing the validation workflow, from initial
 
 ### Integration Layer
 
-The integration layer connects SIVS with ConPort and other Phase 4 components:
+The integration layer connects SIVS with ConPort and other autonomous frameworks:
 
 1. **SIVSIntegration**: Main integration point for external systems
 2. **ConPort Validation Registry**: Retrieves validation criteria and rules from ConPort
@@ -179,9 +179,9 @@ Validation results provide comprehensive information about validation outcomes:
 
 Detailed validation results support transparent, explainable knowledge validation.
 
-## Integration with Other Phase 4 Components
+## Integration with Other Autonomous Frameworks
 
-SIVS integrates with other Phase 4 components in the following ways:
+SIVS integrates with other autonomous frameworks in the following ways:
 
 ### Knowledge-Driven Autonomous Planning (KDAP)
 
@@ -210,7 +210,7 @@ SIVS validation results can enhance CCF communications, adding confidence indica
 The simplest use of SIVS is to validate a single knowledge item:
 
 ```javascript
-const sivs = require('./utilities/phase-4/sivs');
+const sivs = require('./utilities/frameworks/sivs');
 
 // Initialize SIVS with ConPort client
 const sivsInstance = sivs.initializeSIVS({
@@ -327,11 +327,11 @@ SIVS will be implemented with the following components:
 3. **Integration Layer**: Implementation of ConPort integration and external service clients
 4. **Index File**: Creation of a convenient API for SIVS functionality
 
-The implementation will follow the modular, extensible design established for other Phase 4 components.
+The implementation will follow the modular, extensible design established for other autonomous frameworks.
 
 ## Next Steps
 
-After implementing SIVS, the next Phase 4 components to be developed will be:
+After implementing SIVS, additional autonomous frameworks can be developed:
 
 1. **Automated Memory Optimization (AMO)**
 2. **Knowledge Synthesis Engine (KSE)**
