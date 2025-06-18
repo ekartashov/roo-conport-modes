@@ -1,0 +1,48 @@
+# Learning-Focused Workflow
+# For educational scenarios, skill development, and knowledge acquisition with guided exploration
+
+strategy: groupings
+
+mode_groups:
+  # Guided exploration and planning
+  guided_exploration:
+    - ask                     # Conceptual guidance and explanations
+    - architect-kdap-hybrid   # Knowledge-driven planning and learning
+
+  # Hands-on practice
+  hands_on_practice:
+    - code                    # Implementation practice
+    - debug                   # Learning through problem-solving
+
+  # Advanced knowledge synthesis
+  knowledge_synthesis:
+    - docs-amo-hybrid         # Documentation with relationship discovery
+    - code-kse-hybrid         # Knowledge synthesis across learning domains
+
+  # Complete learning workflow
+  learning_complete:
+    - ask
+    - architect-kdap-hybrid
+    - code
+    - debug
+    - docs-amo-hybrid
+    - code-kse-hybrid
+
+# Use all groups for comprehensive learning
+active_groups:
+  - guided_exploration
+  - hands_on_practice
+  - knowledge_synthesis
+
+# Process in learning progression order
+group_order:
+  - guided_exploration
+  - hands_on_practice
+  - knowledge_synthesis
+
+# Prioritize conceptual understanding first
+priority_first:
+  - ask
+
+# No exclusions for comprehensive learning
+exclude: []

@@ -1,0 +1,4 @@
+# Test roomodes file for backup verification
+test_mode:
+  name: "Test Mode"
+  slug: "test"

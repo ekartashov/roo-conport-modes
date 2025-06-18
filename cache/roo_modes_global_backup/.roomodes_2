@@ -1,0 +1,4 @@
+# Test global roomodes file for backup verification
+global_test_mode:
+  name: "Global Test Mode"
+  slug: "global-test"

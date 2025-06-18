@@ -1,0 +1,48 @@
+# Documentation-Focused Workflow
+# For projects prioritizing comprehensive documentation, knowledge management, and relationship mapping
+
+strategy: groupings
+
+mode_groups:
+  # Advanced documentation with relationship mapping
+  advanced_documentation:
+    - docs-amo-hybrid         # Documentation with autonomous mapping
+    - ask                     # Conceptual clarification and guidance
+
+  # Knowledge architecture and implementation
+  knowledge_architecture:
+    - architect-kdap-hybrid   # Architecture with knowledge planning
+    - code-kse-hybrid         # Implementation with knowledge synthesis
+
+  # Quality assurance and tooling
+  quality_assurance:
+    - debug-sivs-hybrid       # Multi-dimensional validation
+    - mode-engineer           # Custom documentation tooling
+
+  # Complete documentation workflow
+  docs_complete:
+    - docs-amo-hybrid
+    - ask
+    - architect-kdap-hybrid
+    - code-kse-hybrid
+    - debug-sivs-hybrid
+    - mode-engineer
+
+# Use all groups for comprehensive documentation capability
+active_groups:
+  - advanced_documentation
+  - knowledge_architecture
+  - quality_assurance
+
+# Process documentation first
+group_order:
+  - advanced_documentation
+  - knowledge_architecture
+  - quality_assurance
+
+# Prioritize advanced documentation
+priority_first:
+  - docs-amo-hybrid
+
+# No exclusions for comprehensive coverage
+exclude: []

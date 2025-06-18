@@ -47,6 +47,9 @@ def get_default_modes_dir() -> Path:
     """
     Get the default modes directory path.
     
+    The path is resolved relative to the project root directory, not the current
+    working directory, making the script location-independent.
+    
     Returns:
         Path to the default modes directory
     """
@@ -54,9 +57,63 @@ def get_default_modes_dir() -> Path:
     env_modes_dir = os.environ.get("ROO_MODES_DIR")
     if env_modes_dir:
         return Path(env_modes_dir)
+    
+    # Determine script location and project root
+    # This script is at: PROJECT_ROOT/scripts/roo_modes_sync/cli.py
+    # The modes directory is at: PROJECT_ROOT/modes/
+    script_dir = Path(__file__).resolve().parent  # scripts/roo_modes_sync/
+    project_root = script_dir.parent.parent       # PROJECT_ROOT/
+    modes_dir = project_root / "modes"
+    
+    return modes_dir
+
+
+def parse_strategy_argument(strategy_arg: str) -> tuple[str, dict]:
+    """
+    Parse strategy argument which can be either a strategy name or a config file path.
+    
+    Args:
+        strategy_arg: Strategy name (e.g., "groupings") or config file path (e.g., "examples/mode-groupings/file.yaml")
         
-    # Default to "modes" directory in current working directory
-    return Path("modes")
+    Returns:
+        Tuple of (strategy_name, options_dict)
+    """
+    import yaml
+    
+    # Check if it's a file path (contains / or \ or ends with .yaml/.yml)
+    if ('/' in strategy_arg or '\\' in strategy_arg or 
+        strategy_arg.endswith('.yaml') or strategy_arg.endswith('.yml')):
+        
+        # It's a file path - load the configuration
+        config_path = Path(strategy_arg)
+        if not config_path.exists():
+            raise SyncError(f"Configuration file not found: {config_path}")
+        
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            
+            if not isinstance(config, dict):
+                raise SyncError(f"Invalid configuration file format: {config_path}")
+            
+            # Extract strategy name
+            strategy_name = config.get('strategy')
+            if not strategy_name:
+                raise SyncError(f"No 'strategy' field found in configuration file: {config_path}")
+            
+            # Extract all other fields as options (excluding 'strategy')
+            options = {k: v for k, v in config.items() if k != 'strategy'}
+            
+            logger.info(f"Loaded strategy '{strategy_name}' from configuration file: {config_path}")
+            return strategy_name, options
+            
+        except yaml.YAMLError as e:
+            raise SyncError(f"Error parsing configuration file {config_path}: {e}")
+        except Exception as e:
+            raise SyncError(f"Error loading configuration file {config_path}: {e}")
+    else:
+        # It's a strategy name
+        return strategy_arg, {}
 
 
 def sync_global(args: argparse.Namespace) -> int:
@@ -80,10 +137,17 @@ def sync_global(args: argparse.Namespace) -> int:
         else:
             sync.set_global_config_path()
             
+        # Parse strategy argument - it could be a strategy name or a config file path
+        strategy_name, strategy_options = parse_strategy_argument(args.strategy)
+        
+        # Merge strategy options with command line options
+        options = {'no_backup': args.no_backup}
+        options.update(strategy_options)
+            
         # Perform sync
         success = sync.sync_modes(
-            strategy_name=args.strategy,
-            options={'no_backup': args.no_backup},
+            strategy_name=strategy_name,
+            options=options,
             dry_run=args.dry_run
         )
         
@@ -123,10 +187,17 @@ def sync_local(args: argparse.Namespace) -> int:
         project_dir = Path(args.project_dir).resolve()
         sync.set_local_config_path(project_dir)
             
+        # Parse strategy argument - it could be a strategy name or a config file path
+        strategy_name, strategy_options = parse_strategy_argument(args.strategy)
+        
+        # Merge strategy options with command line options
+        options = {'no_backup': args.no_backup}
+        options.update(strategy_options)
+            
         # Perform sync
         success = sync.sync_modes(
-            strategy_name=args.strategy,
-            options={'no_backup': args.no_backup},
+            strategy_name=strategy_name,
+            options=options,
             dry_run=args.dry_run
         )
         
@@ -216,8 +287,14 @@ def backup_files(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
-        # Determine project directory
-        project_dir = Path(args.project_dir) if hasattr(args, 'project_dir') and args.project_dir else Path.cwd()
+        # Determine project directory - use workspace root if not specified
+        if hasattr(args, 'project_dir') and args.project_dir:
+            project_dir = Path(args.project_dir)
+        else:
+            # Default to workspace root (parent directory of modes directory)
+            script_dir = Path(__file__).resolve().parent  # scripts/roo_modes_sync/
+            project_dir = script_dir.parent.parent       # PROJECT_ROOT/
+        
         backup_manager = BackupManager(project_dir)
         
         backup_files = []
@@ -234,16 +311,9 @@ def backup_files(args: argparse.Namespace) -> int:
             try:
                 backup_path = backup_manager.backup_global_roomodes()
                 backup_files.append(str(backup_path))
-                print(f"✓ Global .roomodes backed up to: {backup_path}")
+                print(f"✓ Global custom_modes.yaml backed up to: {backup_path}")
             except BackupError as e:
                 print(f"⚠ Global backup failed: {e}")
-                
-            try:
-                backup_path = backup_manager.backup_custom_modes()
-                backup_files.append(str(backup_path))
-                print(f"✓ custom_modes.yaml backed up to: {backup_path}")
-            except BackupError as e:
-                print(f"⚠ Custom modes backup failed: {e}")
         
         if backup_files:
             print(f"\n{len(backup_files)} backup(s) created successfully")
@@ -268,8 +338,14 @@ def restore_files(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
-        # Determine project directory
-        project_dir = Path(args.project_dir) if hasattr(args, 'project_dir') and args.project_dir else Path.cwd()
+        # Determine project directory - use workspace root if not specified
+        if hasattr(args, 'project_dir') and args.project_dir:
+            project_dir = Path(args.project_dir)
+        else:
+            # Default to workspace root (parent directory of modes directory)
+            script_dir = Path(__file__).resolve().parent  # scripts/roo_modes_sync/
+            project_dir = script_dir.parent.parent       # PROJECT_ROOT/
+        
         backup_manager = BackupManager(project_dir)
         
         if args.backup_file:
@@ -317,17 +393,10 @@ def restore_files(args: argparse.Namespace) -> int:
             if args.type == 'global' or args.type == 'all':
                 try:
                     restored_path = backup_manager.restore_global_roomodes()
-                    restored_files.append(f"Global .roomodes -> {restored_path}")
-                    print(f"✓ Restored latest global .roomodes to: {restored_path}")
+                    restored_files.append(f"Global custom_modes.yaml -> {restored_path}")
+                    print(f"✓ Restored latest global custom_modes.yaml to: {restored_path}")
                 except BackupError as e:
                     print(f"⚠ Global restore failed: {e}")
-                    
-                try:
-                    restored_path = backup_manager.restore_custom_modes()
-                    restored_files.append(f"custom_modes.yaml -> {restored_path}")
-                    print(f"✓ Restored latest custom_modes.yaml to: {restored_path}")
-                except BackupError as e:
-                    print(f"⚠ Custom modes restore failed: {e}")
             
             if restored_files:
                 print(f"\n{len(restored_files)} file(s) restored successfully")
@@ -352,8 +421,14 @@ def list_backups(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
-        # Determine project directory
-        project_dir = Path(args.project_dir) if hasattr(args, 'project_dir') and args.project_dir else Path.cwd()
+        # Determine project directory - use workspace root if not specified
+        if hasattr(args, 'project_dir') and args.project_dir:
+            project_dir = Path(args.project_dir)
+        else:
+            # Default to workspace root (parent directory of modes directory)
+            script_dir = Path(__file__).resolve().parent  # scripts/roo_modes_sync/
+            project_dir = script_dir.parent.parent       # PROJECT_ROOT/
+        
         backup_manager = BackupManager(project_dir)
         
         # Get all backups
@@ -372,17 +447,10 @@ def list_backups(args: argparse.Namespace) -> int:
                 print(f"  • {backup_info['path'].name} ({backup_info['size']}, {backup_info['mtime']})")
             print()
         
-        # Display global backups
-        if all_backups['global_roomodes']:
-            print("🌐 Global .roomodes backups:")
-            for backup_info in sorted(all_backups['global_roomodes'], key=lambda x: x['number'], reverse=True):
-                print(f"  • {backup_info['path'].name} ({backup_info['size']}, {backup_info['mtime']})")
-            print()
-        
-        # Display custom modes backups
-        if all_backups['custom_modes']:
-            print("⚙️  Custom modes backups:")
-            for backup_info in sorted(all_backups['custom_modes'], key=lambda x: x['number'], reverse=True):
+        # Display global custom modes backups
+        if all_backups['global_custom_modes']:
+            print("🌐 Global custom_modes.yaml backups:")
+            for backup_info in sorted(all_backups['global_custom_modes'], key=lambda x: x['number'], reverse=True):
                 print(f"  • {backup_info['path'].name} ({backup_info['size']}, {backup_info['mtime']})")
             print()
         

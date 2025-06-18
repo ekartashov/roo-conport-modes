@@ -86,7 +86,7 @@ async function knowledgeFirstExample() {
   console.log("Step 1: Knowledge-First Initialization");
   console.log("--------------------------------------");
   
-  const workspaceId = "/home/user/Projects/agentic/roo-conport-modes";
+  const workspaceId = process.env.WORKSPACE_PATH || "/path/to/your/workspace";
   const userQuery = "What's the best way to implement the knowledge-first approach in our architecture?";
   
   // Initialize the session with ConPort integration

@@ -307,24 +307,26 @@ source: global
         test_args = ["cli.py", "sync-global", "--modes-dir", str(modes_dir), "--dry-run"]
         monkeypatch.setattr(sys, "argv", test_args)
         
-        with patch('cli.sync_global') as mock_sync:
-            with patch('core.sync.ModeSync') as mock_mode_sync:
-                # Mock ModeSync to capture recursive parameter
-                mock_instance = MagicMock()
-                mock_mode_sync.return_value = mock_instance
+        # Mock ModeSync to capture how it's instantiated, but let sync_global run
+        with patch('cli.ModeSync') as mock_mode_sync:
+            # Mock ModeSync to capture recursive parameter
+            mock_instance = MagicMock()
+            mock_instance.sync_modes.return_value = True
+            mock_instance.global_config_path = Path("/test/path")
+            mock_mode_sync.return_value = mock_instance
+            
+            try:
+                result = main()
+                # Check that ModeSync was created with recursive=True by default
+                mock_mode_sync.assert_called_once()
+                call_args = mock_mode_sync.call_args
                 
-                try:
-                    result = main()
-                    # Check that ModeSync was created with recursive=True by default
-                    mock_mode_sync.assert_called_once()
-                    call_args = mock_mode_sync.call_args
-                    
-                    # This should FAIL - recursive parameter doesn't exist yet
-                    assert 'recursive' in call_args.kwargs, "ModeSync should be called with recursive parameter"
-                    assert call_args.kwargs['recursive'] == True, "recursive should be True by default"
-                    
-                except Exception as e:
-                    pytest.fail(f"sync-global should use recursive search by default: {e}")
+                # This should FAIL - recursive parameter doesn't exist yet
+                assert 'recursive' in call_args.kwargs, "ModeSync should be called with recursive parameter"
+                assert call_args.kwargs['recursive'] == True, "recursive should be True by default"
+                
+            except Exception as e:
+                pytest.fail(f"sync-global should use recursive search by default: {e}")
     
     def test_sync_global_with_no_recurse_flag_fails_initially(self, temp_modes_structure, monkeypatch):
         """
@@ -360,21 +362,23 @@ source: global
             test_args = ["cli.py", "sync-local", temp_project, "--modes-dir", str(modes_dir), "--dry-run"]
             monkeypatch.setattr(sys, "argv", test_args)
             
-            with patch('cli.sync_local') as mock_sync:
-                with patch('core.sync.ModeSync') as mock_mode_sync:
-                    mock_instance = MagicMock()
-                    mock_mode_sync.return_value = mock_instance
+            # Mock ModeSync to capture how it's instantiated, but let sync_local run
+            with patch('cli.ModeSync') as mock_mode_sync:
+                mock_instance = MagicMock()
+                mock_instance.sync_modes.return_value = True
+                mock_instance.local_config_path = Path("/test/path")
+                mock_mode_sync.return_value = mock_instance
+                
+                try:
+                    result = main()
+                    # This should FAIL - recursive parameter doesn't exist yet
+                    mock_mode_sync.assert_called_once()
+                    call_args = mock_mode_sync.call_args
+                    assert 'recursive' in call_args.kwargs, "ModeSync should be called with recursive parameter"
+                    assert call_args.kwargs['recursive'] == True, "recursive should be True by default"
                     
-                    try:
-                        result = main()
-                        # This should FAIL - recursive parameter doesn't exist yet
-                        mock_mode_sync.assert_called_once()
-                        call_args = mock_mode_sync.call_args
-                        assert 'recursive' in call_args.kwargs, "ModeSync should be called with recursive parameter"
-                        assert call_args.kwargs['recursive'] == True, "recursive should be True by default"
-                        
-                    except Exception as e:
-                        pytest.fail(f"sync-local should use recursive search by default: {e}")
+                except Exception as e:
+                    pytest.fail(f"sync-local should use recursive search by default: {e}")
 
 
 class TestModeDiscoveryRecursiveTDD:

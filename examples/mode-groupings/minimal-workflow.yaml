@@ -1,0 +1,20 @@
+# Minimal Development Workflow
+# For simple projects that need basic development capabilities without advanced features
+
+strategy: groupings
+
+mode_groups:
+  # Essential development modes for straightforward development
+  minimal:
+    - code        # Core implementation
+    - debug       # Basic troubleshooting
+    - ask         # Conceptual guidance
+
+# Use the minimal group
+active_group: minimal
+
+# Optional: No specific priorities for this simple workflow
+priority_first: []
+
+# Optional: No exclusions
+exclude: []

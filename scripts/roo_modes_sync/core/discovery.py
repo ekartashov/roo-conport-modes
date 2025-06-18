@@ -41,6 +41,8 @@ class ModeDiscovery:
         """
         self.modes_dir = modes_dir
         self.recursive = recursive
+        # Cache for slug-to-relative-path mapping for recursive search
+        self._slug_to_path_cache = {}
         
         # Define category patterns for mode slugs
         self.category_patterns = {
@@ -95,6 +97,9 @@ class ModeDiscovery:
             'discovered': []
         }
         
+        # Clear cache for fresh discovery
+        self._slug_to_path_cache = {}
+        
         # Get all YAML files using the appropriate search method
         yaml_files = self._get_yaml_files()
         if not yaml_files:
@@ -109,6 +114,16 @@ class ModeDiscovery:
         # Process each YAML file
         for yaml_file in yaml_files:
             mode_slug = yaml_file.stem
+            
+            # Store the relative path from modes_dir for this slug
+            try:
+                relative_path = yaml_file.relative_to(self.modes_dir)
+                self._slug_to_path_cache[mode_slug] = relative_path
+                logger.debug(f"Cached path mapping: {mode_slug} -> {relative_path}")
+            except ValueError:
+                # Fallback if relative_to fails
+                self._slug_to_path_cache[mode_slug] = Path(f"{mode_slug}.yaml")
+                logger.warning(f"Could not compute relative path for {yaml_file}, using fallback")
             
             # Skip if not a valid YAML file that can be loaded
             if not self._is_valid_mode_file(yaml_file):
@@ -265,6 +280,18 @@ class ModeDiscovery:
                 
         return None
         
+    def get_mode_relative_path(self, mode_slug: str) -> Optional[Path]:
+        """
+        Get the relative path for a mode slug from the cached mapping.
+        
+        Args:
+            mode_slug: The mode slug to get the path for
+            
+        Returns:
+            Path relative to modes_dir if found, None otherwise
+        """
+        return self._slug_to_path_cache.get(mode_slug)
+    
     def get_mode_info(self, mode_slug: str) -> Optional[Dict[str, Any]]:
         """
         Get information about a specific mode.
@@ -275,7 +302,12 @@ class ModeDiscovery:
         Returns:
             Dictionary with mode information if found, None otherwise
         """
-        mode_file = self.modes_dir / f"{mode_slug}.yaml"
+        # Try to use cached path first, fallback to simple path construction
+        relative_path = self.get_mode_relative_path(mode_slug)
+        if relative_path:
+            mode_file = self.modes_dir / relative_path
+        else:
+            mode_file = self.modes_dir / f"{mode_slug}.yaml"
         
         if not mode_file.exists() or not mode_file.is_file():
             return None

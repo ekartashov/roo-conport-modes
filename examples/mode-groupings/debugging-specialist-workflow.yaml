@@ -1,0 +1,48 @@
+# Debugging Specialist Workflow
+# For complex debugging scenarios requiring systematic validation and multi-dimensional analysis
+
+strategy: groupings
+
+mode_groups:
+  # Advanced debugging with validation
+  advanced_debugging:
+    - debug-sivs-hybrid       # Multi-dimensional validation debugging
+    - code-kse-hybrid         # Knowledge synthesis for complex fixes
+
+  # Root cause analysis
+  root_cause_analysis:
+    - architect-kdap-hybrid   # Systematic architecture analysis
+    - ask                     # Deep conceptual understanding
+
+  # Documentation and tooling
+  documentation_learning:
+    - docs-amo-hybrid         # Document debugging patterns and relationships
+    - mode-engineer           # Create custom debugging tools
+
+  # Complete debugging workflow
+  debug_complete:
+    - debug-sivs-hybrid
+    - code-kse-hybrid
+    - architect-kdap-hybrid
+    - ask
+    - docs-amo-hybrid
+    - mode-engineer
+
+# Use all groups for comprehensive debugging capability
+active_groups:
+  - advanced_debugging
+  - root_cause_analysis
+  - documentation_learning
+
+# Process debugging first
+group_order:
+  - advanced_debugging
+  - root_cause_analysis
+  - documentation_learning
+
+# Prioritize advanced debugging
+priority_first:
+  - debug-sivs-hybrid
+
+# No exclusions for comprehensive debugging capability
+exclude: []

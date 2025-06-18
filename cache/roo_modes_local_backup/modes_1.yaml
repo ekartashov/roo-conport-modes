@@ -1,0 +1,5 @@
+# Test local modes configuration
+customModes:
+  - name: "Test Local Mode"
+    slug: "test-local"
+    source: "local"

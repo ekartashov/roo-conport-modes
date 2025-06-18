@@ -1,0 +1,50 @@
+# Advanced Orchestration Workflow
+# For complex multi-mode coordination with cognitive continuity across long-term projects
+
+strategy: groupings
+
+mode_groups:
+  # Master coordination capabilities
+  master_coordination:
+    - orchestrator-ccf-hybrid # Cognitive continuity framework coordination
+    - mode-engineer           # Mode ecosystem management
+
+  # Complete hybrid framework ecosystem
+  hybrid_ecosystem:
+    - architect-kdap-hybrid   # Architecture with autonomous planning
+    - code-kse-hybrid         # Implementation with knowledge synthesis
+    - debug-sivs-hybrid       # Debugging with validation systems
+    - docs-amo-hybrid         # Documentation with relationship mapping
+
+  # Foundational support
+  foundational_support:
+    - ask                     # Conceptual guidance and consultation
+
+  # Complete orchestration workflow
+  orchestration_complete:
+    - orchestrator-ccf-hybrid
+    - mode-engineer
+    - architect-kdap-hybrid
+    - code-kse-hybrid
+    - debug-sivs-hybrid
+    - docs-amo-hybrid
+    - ask
+
+# Use all groups for maximum orchestration capability
+active_groups:
+  - master_coordination
+  - hybrid_ecosystem
+  - foundational_support
+
+# Process coordination first
+group_order:
+  - master_coordination
+  - hybrid_ecosystem
+  - foundational_support
+
+# Prioritize orchestrator for coordination leadership
+priority_first:
+  - orchestrator-ccf-hybrid
+
+# No exclusions for comprehensive orchestration
+exclude: []

@@ -274,7 +274,7 @@ const docsEnhancement = new DocsModeEnhancement({
     enabled: true,
     autoExtract: true,
     autoLog: true,
-    workspace: '/home/user/Projects/agentic/roo-conport-modes'
+    workspace: process.env.WORKSPACE_PATH || '/path/to/your/workspace'
   },
   
   // Custom event handlers

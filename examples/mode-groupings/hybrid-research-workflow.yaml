@@ -1,0 +1,12 @@
+strategy: groupings
+mode_groups:
+  research_phase:
+    - docs-amo-hybrid
+    - architect-kdap-hybrid
+  development_phase:
+    - code-kse-hybrid
+    - debug-sivs-hybrid
+  integration_phase:
+    - orchestrator-ccf-hybrid
+    - docs-amo-hybrid
+active_group: research_phase

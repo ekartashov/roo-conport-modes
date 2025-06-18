@@ -1,0 +1,55 @@
+# Enterprise Development Workflow  
+# For large-scale projects requiring comprehensive planning, validation, and knowledge management
+
+strategy: groupings
+
+mode_groups:
+  # Strategic planning with advanced hybrid capabilities
+  strategic_planning:
+    - architect-kdap-hybrid    # Architecture with autonomous planning
+    - orchestrator-ccf-hybrid  # Workflow coordination with continuity
+
+  # Advanced implementation with knowledge synthesis and validation
+  advanced_implementation:
+    - code-kse-hybrid         # Implementation with knowledge synthesis
+    - debug-sivs-hybrid       # Debugging with multi-dimensional validation
+
+  # Knowledge management and documentation
+  knowledge_management:
+    - docs-amo-hybrid         # Documentation with relationship mapping
+    - mode-engineer           # Mode ecosystem management
+
+  # Expert consultation
+  consultation:
+    - ask                     # Conceptual guidance and consultation
+
+  # Complete enterprise workflow
+  enterprise_complete:
+    - architect-kdap-hybrid
+    - orchestrator-ccf-hybrid
+    - code-kse-hybrid
+    - debug-sivs-hybrid
+    - docs-amo-hybrid
+    - mode-engineer
+    - ask
+
+# Use multiple groups for comprehensive workflow
+active_groups:
+  - strategic_planning
+  - advanced_implementation
+  - knowledge_management
+  - consultation
+
+# Process groups in logical order
+group_order:
+  - strategic_planning
+  - advanced_implementation
+  - knowledge_management
+  - consultation
+
+# Prioritize architecture planning first
+priority_first:
+  - architect-kdap-hybrid
+
+# No exclusions - we want comprehensive coverage
+exclude: []

@@ -291,7 +291,7 @@ async function exampleModeOperation() {
     logCustomData: async () => ({})
   };
   
-  const mockWorkspaceId = "/home/user/Projects/example";
+  const mockWorkspaceId = process.env.WORKSPACE_PATH || "/path/to/your/workspace";
   const mockSessionContext = {
     currentTask: "Implement user authentication",
     sessionStartTime: Date.now() - 1000 * 60 * 15, // 15 minutes ago

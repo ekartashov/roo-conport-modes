@@ -1,0 +1,41 @@
+# Rapid Prototyping Workflow
+# For fast iteration and quick validation of ideas with core modes
+
+strategy: groupings
+
+mode_groups:
+  # Core development for rapid iteration
+  core_development:
+    - code                    # Fast implementation
+    - debug                   # Quick troubleshooting
+    - ask                     # Immediate guidance
+
+  # Lightweight planning and documentation
+  lightweight_planning:
+    - architect               # Basic system design
+    - docs                    # Essential documentation
+
+  # Complete rapid prototyping workflow
+  rapid_complete:
+    - code
+    - debug
+    - ask
+    - architect
+    - docs
+
+# Use core development primarily, with lightweight planning available
+active_groups:
+  - core_development
+  - lightweight_planning
+
+# Process core development first for speed
+group_order:
+  - core_development
+  - lightweight_planning
+
+# Prioritize code for immediate implementation
+priority_first:
+  - code
+
+# No exclusions for flexibility
+exclude: []

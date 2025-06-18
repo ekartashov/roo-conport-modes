@@ -244,7 +244,15 @@ class ModeSync:
         Raises:
             SyncError: If the mode file does not exist or fails validation
         """
-        mode_file = self.modes_dir / f"{slug}.yaml"
+        # Try to get the relative path from discovery cache first
+        relative_path = self.discovery.get_mode_relative_path(slug)
+        if relative_path:
+            mode_file = self.modes_dir / relative_path
+            logger.debug(f"Using cached path for {slug}: {relative_path}")
+        else:
+            # Fallback to simple path construction for backward compatibility
+            mode_file = self.modes_dir / f"{slug}.yaml"
+            logger.debug(f"Using fallback path for {slug}: {mode_file}")
         
         if not mode_file.exists():
             error_msg = f"Mode file not found: {mode_file}"

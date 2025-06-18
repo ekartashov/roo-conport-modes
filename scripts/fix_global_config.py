@@ -11,13 +11,30 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "roo_modes_sync"))
 
 from roo_modes_sync.core.global_config_fixer import GlobalConfigFixer
+from roo_modes_sync.utils.dynamic_paths import find_existing_custom_modes_file, get_custom_modes_path
 
 
 def main():
     """Apply the global config fixer to the actual global config file."""
     
-    # Path to the actual global config file
-    global_config_path = Path("/home/user/.config/VSCodium/User/globalStorage/rooveterinaryinc.roo-cline/settings/custom_modes.yaml")
+    # Find the global config file dynamically
+    global_config_path = find_existing_custom_modes_file()
+    
+    if global_config_path is None:
+        # Try VSCodium first, then VSCode
+        for app_name in ["VSCodium", "Code"]:
+            potential_path = get_custom_modes_path(app_name)
+            if potential_path.exists():
+                global_config_path = potential_path
+                break
+    
+    if global_config_path is None:
+        print("ERROR: Could not find custom_modes.yaml in any VSCode/VSCodium installation.")
+        print("Searched in:")
+        for app_name in ["VSCodium", "Code"]:
+            print(f"  - {get_custom_modes_path(app_name)}")
+        print("\nPlease ensure VSCode/VSCodium is installed and the Roo extension is active.")
+        return 1
     
     # Make sure the path is absolute and normalized
     global_config_path = global_config_path.resolve()

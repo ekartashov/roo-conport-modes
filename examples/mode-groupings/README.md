@@ -1,100 +1,120 @@
 # Mode Groupings Examples
 
-This directory contains example configurations for the new **mode groupings** feature in roo_modes_sync. Mode groupings allow you to define custom collections of modes with specific ordering, making it much easier to configure workflows.
+This directory contains example configuration files that demonstrate different ways to select and combine modes for specific workflows and use cases. Each configuration showcases how to leverage the GroupingsOrderingStrategy to create targeted mode selections.
 
-## Quick Start
+## Available Configurations
 
-Instead of manually specifying every mode and its order, you can now define named groups:
+### 🚀 **Minimal Workflow** (`minimal-workflow.yaml`)
+**Purpose**: Essential modes for straightforward development without complexity
+- **Modes**: `code`, `debug`, `ask`
+- **Best For**: Personal projects, learning, simple bug fixes
+- **Characteristics**: Fast switching, low overhead, direct problem-solving
 
-```yaml
-strategy: groupings
+### 🏢 **Enterprise Workflow** (`enterprise-workflow.yaml`)
+**Purpose**: Comprehensive enterprise development with advanced hybrid capabilities
+- **Modes**: `architect-kdap-hybrid`, `orchestrator-ccf-hybrid`, `code-kse-hybrid`, `debug-sivs-hybrid`, `docs-amo-hybrid`, `mode-engineer`, `ask`
+- **Best For**: Large-scale systems, distributed teams, systematic knowledge management
+- **Characteristics**: Advanced validation, cognitive continuity, comprehensive documentation
 
-mode_groups:
-  essential:
-    - code
-    - debug
-    - ask
+### 🔬 **Hybrid Research Workflow** (`hybrid-research-workflow.yaml`)
+**Purpose**: R&D projects with knowledge synthesis and pattern discovery
+- **Modes**: `code-kse-hybrid`, `architect-kdap-hybrid`, `docs-amo-hybrid`, `ask`, `debug-sivs-hybrid`, `mode-engineer`
+- **Best For**: Cross-domain research, experimental architecture, pattern discovery
+- **Characteristics**: Knowledge synthesis, autonomous mapping, experimental validation
 
-active_group: essential
-```
+### ⚡ **Rapid Prototyping Workflow** (`rapid-prototyping-workflow.yaml`)
+**Purpose**: Fast iteration and quick validation of ideas
+- **Modes**: `code`, `debug`, `ask`, `architect`, `docs`
+- **Best For**: MVPs, hackathons, proof-of-concepts, startup development
+- **Characteristics**: Minimal overhead, fast cycles, lightweight planning
 
-## Example Configurations
+### 📚 **Documentation-Focused Workflow** (`documentation-focused-workflow.yaml`)
+**Purpose**: Comprehensive documentation with relationship mapping
+- **Modes**: `docs-amo-hybrid`, `ask`, `architect-kdap-hybrid`, `code-kse-hybrid`, `debug-sivs-hybrid`, `mode-engineer`
+- **Best For**: API documentation, knowledge bases, technical writing
+- **Characteristics**: Relationship discovery, cross-referential systems, knowledge graphs
 
-### 1. Essential Workflow (`essential-workflow.yaml`)
-**Use case**: Simple daily development tasks
-- Just the core modes: code, debug, ask
-- Debug prioritized for quick troubleshooting access
-- Perfect for focused development work
+### 🐛 **Debugging Specialist Workflow** (`debugging-specialist-workflow.yaml`)
+**Purpose**: Complex debugging with multi-dimensional validation
+- **Modes**: `debug-sivs-hybrid`, `code-kse-hybrid`, `architect-kdap-hybrid`, `ask`, `docs-amo-hybrid`, `mode-engineer`
+- **Best For**: Complex system debugging, performance optimization, security investigation
+- **Characteristics**: Multi-dimensional validation, systematic improvement, custom tooling
 
-### 2. Full Development Cycle (`full-development-cycle.yaml`)
-**Use case**: Complete project workflows
-- Multiple groups for different phases (planning, development, quality)
-- Demonstrates using multiple active groups
-- Shows group ordering for structured workflows
+### 🎭 **Advanced Orchestration Workflow** (`orchestration-workflow.yaml`)
+**Purpose**: Master coordination for complex multi-mode projects
+- **Modes**: `orchestrator-ccf-hybrid`, `mode-engineer`, `architect-kdap-hybrid`, `code-kse-hybrid`, `debug-sivs-hybrid`, `docs-amo-hybrid`, `ask`
+- **Best For**: Large-scale coordination, long-term projects, strategic transformation
+- **Characteristics**: Complete hybrid ecosystem, cognitive continuity, strategic coordination
 
-### 3. Specialized Workflows (`specialized-workflows.yaml`)
-**Use case**: Task-specific configurations
-- Multiple predefined workflows for different scenarios
-- Easy switching between debugging, security, learning, etc.
-- Shows how to adapt groupings for different work contexts
+### 🎓 **Learning-Focused Workflow** (`learning-workflow.yaml`)
+**Purpose**: Educational scenarios and skill development
+- **Modes**: `ask`, `architect-kdap-hybrid`, `code`, `debug`, `docs-amo-hybrid`, `code-kse-hybrid`
+- **Best For**: Learning new technologies, technical education, onboarding
+- **Characteristics**: Guided exploration, systematic knowledge building, relationship discovery
 
-## Key Features
+## Legacy Configurations
 
-### Single Group Selection
-```yaml
-mode_groups:
-  my-workflow:
-    - code
-    - debug
-active_group: my-workflow
-```
+### **Essential Workflow** (`essential-workflow.yaml`)
+Classic essential development modes
+- **Modes**: `code`, `debug`, `architect`, `ask`
 
-### Multiple Group Selection
-```yaml
-mode_groups:
-  planning: [architect, ask]
-  coding: [code, debug]
-active_groups: [planning, coding]
-group_order: [planning, coding]  # Optional: specify order
-```
+### **Full Development Cycle** (`full-development-cycle.yaml`)
+Complete development lifecycle with all core modes
+- **Modes**: `architect`, `code`, `debug`, `docs`, `ask`, `orchestrator`
 
-### Advanced Options
-```yaml
-priority_first: [debug]      # Always put debug first
-exclude: [old-mode]          # Exclude specific modes
-```
+### **Specialized Workflows** (`specialized-workflows.yaml`)
+Task-specific mode combinations
+- Multiple groupings for different specialized tasks
 
-## Benefits
+## Mode Categories Overview
 
-1. **Intuitive Configuration**: Name your workflows instead of listing modes
-2. **Easy Switching**: Change `active_group` to switch entire workflows
-3. **Reusable Groups**: Define once, use in multiple combinations
-4. **Preserved Order**: Modes appear in the exact order you specify
-5. **Backward Compatible**: All existing strategies still work
+### **Core Modes (6)**
+- `💻 code` - Implementation specialist with knowledge management
+- `🪲 debug` - Debugging specialist with systematic knowledge capture
+- `🏗️ architect` - System architect with integrated knowledge management
+- `❓ ask` - Knowledge consultant for conceptual questions
+- `📝 docs` - Technical documentation specialist
+- `🪃 orchestrator` - Strategic workflow orchestrator
 
-## Usage
+### **Hybrid Modes (5)**
+- `🏗️🧠 architect-kdap-hybrid` - Architecture + Knowledge-Driven Autonomous Planning
+- `💻⚛️ code-kse-hybrid` - Code + Knowledge Synthesis Engine
+- `🪲🛡️ debug-sivs-hybrid` - Debug + Self-Improving Validation System
+- `📝🗺️ docs-amo-hybrid` - Docs + Autonomous Mapping Orchestrator
+- `🪃🔄 orchestrator-ccf-hybrid` - Orchestrator + Cognitive Continuity Framework
 
-Use these examples as starting points:
+### **Specialized Modes (1)**
+- `🏗️ mode-engineer` - Meta-mode for creating and managing other modes
 
+## Usage Examples
+
+### Apply a specific workflow:
 ```bash
-# Copy an example
-cp examples/mode-groupings/essential-workflow.yaml my-config.yaml
-
-# Edit for your needs
-vim my-config.yaml
-
-# Use with roo_modes_sync (when implemented)
-roo_modes_sync --config my-config.yaml
+python -m scripts.roo_modes_sync --config examples/mode-groupings/enterprise-workflow.yaml
 ```
 
-## Integration with Existing Strategies
+### Create custom workflow:
+```yaml
+name: "My Custom Workflow"
+description: "Tailored mode selection for my specific needs"
+strategy: "GroupingsOrderingStrategy"
 
-The groupings strategy works alongside existing strategies:
+groupings:
+  my_core_group:
+    modes:
+      - code-kse-hybrid
+      - debug-sivs-hybrid
+      - ask
+    description: "My essential modes with hybrid capabilities"
+```
 
-- `strategic`: Strategic importance ordering (default)
-- `alphabetical`: Alphabetical ordering
-- `category`: Category-based ordering  
-- `custom`: Custom explicit ordering
-- `groupings`: **NEW** - Group-based workflows
+## Choosing the Right Configuration
 
-Choose `groupings` when you want intuitive, workflow-based configuration instead of technical ordering rules.
+### **For Beginners**: Start with `minimal-workflow.yaml` or `learning-workflow.yaml`
+### **For Teams**: Use `enterprise-workflow.yaml` or `full-development-cycle.yaml`
+### **For Research**: Try `hybrid-research-workflow.yaml`
+### **For Speed**: Use `rapid-prototyping-workflow.yaml`
+### **For Documentation**: Use `documentation-focused-workflow.yaml`
+### **For Complex Projects**: Use `orchestration-workflow.yaml`
+
+Each configuration is designed to optimize mode selection for specific scenarios while leveraging the system's advanced hybrid capabilities and knowledge management features.

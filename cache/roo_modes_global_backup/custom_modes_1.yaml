@@ -1,0 +1,5 @@
+# Test custom modes file for backup verification
+custom_test_mode:
+  name: "Custom Test Mode"
+  slug: "custom-test"
+  description: "Test mode for backup verification"

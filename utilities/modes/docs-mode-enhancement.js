@@ -158,7 +158,7 @@ class DocsModeEnhancement {
     this.conportOptions = {
       autoExtract: options?.autoExtract !== false,
       autoLog: options?.autoLog !== false,
-      workspace: options?.workspace || '/home/user/Projects/agentic/roo-conport-modes',
+      workspace: options?.workspace || process.env.WORKSPACE_PATH || process.cwd(),
       ...options
     };
     
