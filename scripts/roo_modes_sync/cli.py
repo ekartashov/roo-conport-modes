@@ -486,13 +486,13 @@ def main() -> int:
     # Add global arguments as a parent parser
     global_parser = argparse.ArgumentParser(add_help=False)
     global_parser.add_argument(
-        "--modes-dir",
+        "-m", "--modes-dir",
         type=Path,
         default=get_default_modes_dir(),
         help="Directory containing mode YAML files (default: modes)"
     )
     global_parser.add_argument(
-        "--no-recurse",
+        "-n", "--no-recurse",
         action="store_true",
         help="Disable recursive search for mode files in subdirectories (default: search recursively)"
     )
@@ -504,21 +504,21 @@ def main() -> int:
         help="Synchronize modes to global configuration"
     )
     sync_global_parser.add_argument(
-        "--config",
+        "-c", "--config",
         help="Path to global configuration file (overrides default)"
     )
     sync_global_parser.add_argument(
-        "--strategy",
+        "-s", "--strategy",
         default="strategic",
         help="Ordering strategy (strategic, alphabetical, etc.)"
     )
     sync_global_parser.add_argument(
-        "--dry-run",
+        "-d", "--dry-run",
         action="store_true",
         help="Don't write configuration file, just show what would be done"
     )
     sync_global_parser.add_argument(
-        "--no-backup",
+        "-b", "--no-backup",
         action="store_true",
         help="Skip creating backup before sync"
     )
@@ -535,17 +535,17 @@ def main() -> int:
         help="Path to project directory"
     )
     sync_local_parser.add_argument(
-        "--strategy",
+        "-s", "--strategy",
         default="strategic",
         help="Ordering strategy (strategic, alphabetical, etc.)"
     )
     sync_local_parser.add_argument(
-        "--dry-run",
+        "-d", "--dry-run",
         action="store_true",
         help="Don't write configuration file, just show what would be done"
     )
     sync_local_parser.add_argument(
-        "--no-backup",
+        "-b", "--no-backup",
         action="store_true",
         help="Skip creating backup before sync"
     )
@@ -575,13 +575,13 @@ def main() -> int:
         description="Create backups of configuration files"
     )
     backup_parser.add_argument(
-        "--type",
+        "-t", "--type",
         choices=["local", "global", "all"],
         default="all",
         help="Type of files to backup (default: all)"
     )
     backup_parser.add_argument(
-        "--project-dir",
+        "-p", "--project-dir",
         help="Project directory (default: current directory)"
     )
     backup_parser.set_defaults(func=backup_files)
@@ -594,17 +594,17 @@ def main() -> int:
         description="Restore configuration files from backup"
     )
     restore_parser.add_argument(
-        "--type",
+        "-t", "--type",
         choices=["local", "global", "all"],
         default="all",
         help="Type of files to restore (default: all - latest backups)"
     )
     restore_parser.add_argument(
-        "--backup-file",
+        "-f", "--backup-file",
         help="Specific backup file to restore (overrides --type)"
     )
     restore_parser.add_argument(
-        "--project-dir",
+        "-p", "--project-dir",
         help="Project directory (default: current directory)"
     )
     restore_parser.set_defaults(func=restore_files)
@@ -617,7 +617,7 @@ def main() -> int:
         description="List available backup files"
     )
     list_backups_parser.add_argument(
-        "--project-dir",
+        "-p", "--project-dir",
         help="Project directory (default: current directory)"
     )
     list_backups_parser.set_defaults(func=list_backups)

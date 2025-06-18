@@ -61,11 +61,20 @@ Synchronize modes to the global system-wide configuration:
 # Using default settings
 roo-modes sync-global
 
-# With custom strategy and config path
+# With custom strategy and config path (long form)
 roo-modes sync-global --strategy alphabetical --config /path/to/custom/config.yaml
 
-# Dry run to see what would be done
+# With custom strategy and config path (short form)
+roo-modes sync-global -s alphabetical -c /path/to/custom/config.yaml
+
+# Dry run to see what would be done (long form)
 roo-modes sync-global --dry-run
+
+# Dry run to see what would be done (short form)
+roo-modes sync-global -d
+
+# Skip backup during sync (short form)
+roo-modes sync-global -b
 ```
 
 #### Local Synchronization
@@ -76,11 +85,20 @@ Synchronize modes to a local project directory:
 # Basic local sync
 roo-modes sync-local /path/to/project
 
-# With custom strategy
+# With custom strategy (long form)
 roo-modes sync-local /path/to/project --strategy alphabetical
 
-# Dry run to see what would be done
+# With custom strategy (short form)
+roo-modes sync-local /path/to/project -s alphabetical
+
+# Dry run to see what would be done (long form)
 roo-modes sync-local /path/to/project --dry-run
+
+# Dry run to see what would be done (short form)
+roo-modes sync-local /path/to/project -d
+
+# Custom modes directory with dry run (short form)
+roo-modes sync-local /path/to/project -m ./custom-modes -d
 ```
 
 #### Backup and Restore
@@ -91,22 +109,67 @@ Create backups of configuration files before synchronization:
 # Create backup of all configuration files
 roo-modes backup
 
-# Create backup of specific type (local, global, or both)
+# Create backup of specific type (long form)
 roo-modes backup --type local
 roo-modes backup --type global
-roo-modes backup --type both
+roo-modes backup --type all
+
+# Create backup of specific type (short form)
+roo-modes backup -t local
+roo-modes backup -t global
+roo-modes backup -t all
 
 # Restore from backup (restores latest backup by default)
 roo-modes restore
 
-# Restore specific backup by number
-roo-modes restore --backup-number 3
+# Restore specific backup file (long form)
+roo-modes restore --backup-file custom_modes_3.yaml
 
-# Restore specific type from backup
-roo-modes restore --type local --backup-number 2
+# Restore specific backup file (short form)
+roo-modes restore -f custom_modes_3.yaml
+
+# Restore specific type from backup (short form)
+roo-modes restore -t local
 
 # List all available backups
 roo-modes list-backups
+
+# List backups with custom project directory (short form)
+roo-modes list-backups -p /path/to/project
+```
+
+#### Short Options Reference
+
+The CLI supports short options for faster command-line usage:
+
+**Global Options:**
+- `-m, --modes-dir`: Directory containing mode YAML files
+- `-n, --no-recurse`: Disable recursive search for mode files
+
+**Sync Options:**
+- `-c, --config`: Path to global configuration file (sync-global only)
+- `-s, --strategy`: Ordering strategy (strategic, alphabetical, etc.)
+- `-d, --dry-run`: Preview changes without writing files
+- `-b, --no-backup`: Skip creating backup before sync
+
+**Backup/Restore Options:**
+- `-t, --type`: Type of files (local, global, all)
+- `-f, --backup-file`: Specific backup file to restore
+- `-p, --project-dir`: Project directory path
+
+**Quick Examples:**
+```bash
+# Quick global sync with preview
+roo-modes sync-global -d
+
+# Quick local sync with custom strategy
+roo-modes sync-local . -s strategic
+
+# Quick backup of all files
+roo-modes backup -t all
+
+# Quick restore of specific file
+roo-modes restore -f .roomodes_2
 ```
 
 Example backup output:
