@@ -34,8 +34,7 @@ scripts/
 │   └── README.md             # This documentation
 │
 ├── run_sync.py               # Entry point script
-├── order.yaml                # Example ordering configuration
-└── example_configs/          # Example configuration files
+└── order.yaml                # Example ordering configuration
 ```
 
 This modular implementation provides a clean separation of concerns and a more maintainable architecture, while adding new features like local mode application and MCP server integration.

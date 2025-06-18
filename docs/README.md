@@ -1,97 +1,108 @@
-# Project Documentation
+# Documentation
 
-Welcome to the documentation hub for the Roo AI Modes project. This directory contains all relevant guides, examples, and analysis documents to help you understand, use, and contribute to the various modes and frameworks within this project.
+Welcome to the comprehensive documentation for the Roo Modes Collection. This documentation is organized to help you find exactly what you need, whether you're just getting started or diving deep into advanced features.
 
-## Structure
+## 🚀 Getting Started
 
-The documentation is organized into the following main sections:
+**New to Roo Modes?** Start here:
 
--   **[Frameworks (`frameworks/`)](frameworks/):** Architecture documentation for autonomous frameworks (AKAF, KDAP, KSE, AMO, SIVS, CCF)
--   **[Advanced (`advanced/`)](advanced/):** Documentation for advanced knowledge management systems (analytics, workflows, graphs)
--   **[Analysis (`analysis/`)](analysis/):** In-depth explorations, design documents, and rationale behind specific features or architectural decisions.
--   **[Examples (`examples/`)](examples/):** Practical, real-world usage scenarios for different modes, demonstrating their capabilities.
--   **[Guides (`guides/`)](guides/):** Comprehensive how-to documents, tutorials, and reference materials for installing, configuring, and using various modes and systems.
+- [`getting-started/SIMPLE_SETUP.md`](getting-started/SIMPLE_SETUP.md) - 5-minute setup walkthrough
+- [`getting-started/NEWCOMER_WALKTHROUGH.md`](getting-started/NEWCOMER_WALKTHROUGH.md) - Comprehensive introduction for newcomers
+- [`getting-started/QUICK_START_EXAMPLES.md`](getting-started/QUICK_START_EXAMPLES.md) - Copy-paste examples to get going fast
 
-Additionally, you'll find:
--   **[`CLI-SHORTCUTS.md`](CLI-SHORTCUTS.md:0):** A quick reference for CLI tool name shortcuts used in interactions with Roo.
+## 📖 Guides
 
-## Key Documents
+**How-to guides and workflows:**
 
-Below are some key documents you might find useful, categorized by section.
+- [`guides/WHAT_EACH_MODE_DOES.md`](guides/WHAT_EACH_MODE_DOES.md) - Plain English explanations of each mode
+- [`guides/COMMON_WORKFLOWS.md`](guides/COMMON_WORKFLOWS.md) - Typical usage patterns and examples
+- [`guides/CUSTOMIZATION_GUIDE.md`](guides/CUSTOMIZATION_GUIDE.md) - How to modify and create modes
+- [`guides/FRAMEWORK_USER_GUIDE.md`](guides/FRAMEWORK_USER_GUIDE.md) - Using the framework effectively
+- [`guides/FILE_ORGANIZATION_GUIDE.md`](guides/FILE_ORGANIZATION_GUIDE.md) - Understanding the project structure
 
-### Frameworks
+### Mode-Specific Enhancement Guides
+- [`guides/code-mode-enhancements.md`](guides/code-mode-enhancements.md) - Enhanced Code Mode capabilities
+- [`guides/architect-mode-enhancements.md`](guides/architect-mode-enhancements.md) - Enhanced Architect Mode features
+- [`guides/debug-mode-enhancements.md`](guides/debug-mode-enhancements.md) - Enhanced Debug Mode tools
+- [`guides/docs-mode-enhancements.md`](guides/docs-mode-enhancements.md) - Enhanced Docs Mode functionality
+- [`guides/orchestrator-mode-enhancements.md`](guides/orchestrator-mode-enhancements.md) - Enhanced Orchestrator capabilities
+- [`guides/prompt-enhancer-mode-enhancements.md`](guides/prompt-enhancer-mode-enhancements.md) - Prompt enhancement features
 
-The `frameworks/` directory contains architecture documentation for production-ready autonomous frameworks:
+### ConPort Knowledge Management
+- [`guides/conport-maintenance-guide.md`](guides/conport-maintenance-guide.md) - Managing your knowledge base
+- [`guides/knowledge-first-guidelines.md`](guides/knowledge-first-guidelines.md) - Best practices for knowledge capture
+- [`guides/cross-mode-knowledge-workflows.md`](guides/cross-mode-knowledge-workflows.md) - Sharing knowledge between modes
 
--   [`README.md`](frameworks/README.md): Overview of all autonomous frameworks and their capabilities
--   [`akaf-architecture.md`](frameworks/akaf-architecture.md): Adaptive Knowledge Application Framework architecture
--   [`kdap-architecture.md`](frameworks/kdap-architecture.md): Knowledge-Driven Autonomous Planning architecture
--   [`kse-architecture.md`](frameworks/kse-architecture.md): Knowledge Synthesis Engine architecture
--   [`amo-architecture.md`](frameworks/amo-architecture.md): Autonomous Mapping Orchestrator architecture
--   [`sivs-architecture.md`](frameworks/sivs-architecture.md): Self-Improving Validation System architecture
--   [`ccf-architecture.md`](frameworks/ccf-architecture.md): Cognitive Continuity Framework architecture
+## 📚 Reference
 
-### Advanced
+**Technical references and detailed explanations:**
 
-The `advanced/` directory contains documentation for advanced knowledge management systems:
+- [`reference/HOW_IT_WORKS.md`](reference/HOW_IT_WORKS.md) - Technical overview of the system
+- [`reference/FRAMEWORK_TECHNICAL_REFERENCE.md`](reference/FRAMEWORK_TECHNICAL_REFERENCE.md) - Detailed technical documentation
+- [`reference/CLI-SHORTCUTS.md`](reference/CLI-SHORTCUTS.md) - Command-line tool shortcuts and usage
 
--   [`README.md`](advanced/README.md): Overview of all advanced knowledge management systems
--   [`conport-analytics.md`](advanced/conport-analytics.md): Comprehensive analytics for knowledge systems
--   [`knowledge-quality-enhancement.md`](advanced/knowledge-quality-enhancement.md): Quality assessment and improvement
--   [`cross-mode-knowledge-workflows.md`](advanced/cross-mode-knowledge-workflows.md): Knowledge transfer between modes
--   [`semantic-knowledge-graph.md`](advanced/semantic-knowledge-graph.md): Relationship mapping and semantic analysis
--   [`temporal-knowledge-management.md`](advanced/temporal-knowledge-management.md): Time-aware knowledge systems
+## 🔧 Troubleshooting
 
-### Analysis
+**Problem-solving and FAQ:**
 
-The `analysis/` directory contains detailed design and implementation notes, particularly for the enhanced prompt enhancer:
+- [`troubleshooting/FAQ.md`](troubleshooting/FAQ.md) - Frequently asked questions
+- [`troubleshooting/TROUBLESHOOTING.md`](troubleshooting/TROUBLESHOOTING.md) - Common issues and solutions
 
--   [`enhanced-prompt-enhancer-config.md`](analysis/enhanced-prompt-enhancer-config.md:0): Configuration details for the enhanced prompt enhancer.
--   [`enhanced-prompt-enhancer-design.md`](analysis/enhanced-prompt-enhancer-design.md:0): Design principles and architecture.
--   [`enhanced-prompt-enhancer-implementation.md`](analysis/enhanced-prompt-enhancer-implementation.md:0): Implementation notes.
--   [`prompt-enhancer-solution-analysis.md`](analysis/prompt-enhancer-solution-analysis.md:0): Analysis of the solution.
+## 🏗️ Frameworks
 
-### Examples
+**Advanced framework architectures:**
 
-The `examples/` directory provides practical illustrations for various modes:
+- [`frameworks/README.md`](frameworks/README.md) - Overview of all frameworks
+- [`frameworks/akaf-architecture.md`](frameworks/akaf-architecture.md) - Adaptive Knowledge Application Framework
+- [`frameworks/ccf-architecture.md`](frameworks/ccf-architecture.md) - Cognitive Continuity Framework
+- [`frameworks/kdap-architecture.md`](frameworks/kdap-architecture.md) - Knowledge-Driven Architecture Pattern
+- [`frameworks/kse-architecture.md`](frameworks/kse-architecture.md) - Knowledge Synthesis Engine
+- [`frameworks/sivs-architecture.md`](frameworks/sivs-architecture.md) - Self-Improving Validation System
+- [`frameworks/amo-architecture.md`](frameworks/amo-architecture.md) - Adaptive Mode Orchestration
 
--   [`conport-maintenance-examples.md`](examples/conport-maintenance-examples.md:0): Using the ConPort Maintenance mode.
--   [`docs-auditor-examples.md`](examples/docs-auditor-examples.md:0): Examples for auditing documentation with the Docs mode.
--   [`docs-creator-examples.md`](examples/docs-creator-examples.md:0): Examples for creating documentation with the Docs mode.
--   [`mode-manager-examples.md`](examples/mode-manager-examples.md:0): Managing modes.
--   [`prompt-enhancer-examples.md`](examples/prompt-enhancer-examples.md:0): Using the Prompt Enhancer mode.
--   [`prompt-enhancer-isolated-examples.md`](examples/prompt-enhancer-isolated-examples.md:0): Using the Prompt Enhancer (Isolated) mode.
+## 🚀 Advanced Topics
 
-### Guides
+**Deep dives and advanced integrations:**
 
-The `guides/` directory offers comprehensive guidance on various topics:
+- [`advanced/README.md`](advanced/README.md) - Overview of advanced features
+- [`advanced/conport-analytics.md`](advanced/conport-analytics.md) - Analytics and insights from knowledge data
+- [`advanced/cross-mode-knowledge-workflows.md`](advanced/cross-mode-knowledge-workflows.md) - Advanced knowledge sharing
+- [`advanced/semantic-knowledge-graph.md`](advanced/semantic-knowledge-graph.md) - Semantic relationships in knowledge
+- [`advanced/temporal-knowledge-management.md`](advanced/temporal-knowledge-management.md) - Time-based knowledge evolution
+- [`advanced/multi-agent-sync.md`](advanced/multi-agent-sync.md) - Synchronizing knowledge across agents
 
--   **Mode-Specific Guides:**
-    -   [`code-enhanced-guide.md`](guides/code-enhanced-guide.md:0): Guide for the Code (Enhanced) mode.
-    -   [`conport-maintenance-guide.md`](guides/conport-maintenance-guide.md:0): Guide for the ConPort Maintenance mode.
-    -   [`docs-auditor-guide.md`](guides/docs-auditor-guide.md:0): Guide for using Docs mode as an auditor.
-    -   [`docs-creator-guide.md`](guides/docs-creator-guide.md:0): Guide for using Docs mode as a creator.
-    -   [`mode-manager-guide.md`](guides/mode-manager-guide.md:0): Guide for the Mode Manager.
-    -   [`prompt-enhancer-guide.md`](guides/prompt-enhancer-guide.md:0): Guide for the Prompt Enhancer mode.
-    -   [`prompt-enhancer-isolated-guide.md`](guides/prompt-enhancer-isolated-guide.md:0): Guide for the Prompt Enhancer (Isolated) mode.
--   **Frameworks & Processes:**
-    -   [`universal-mode-enhancement-framework.md`](guides/universal-mode-enhancement-framework.md:0): Details the universal framework applied to enhance modes.
-    -   [`local-mode-installation.md`](guides/local-mode-installation.md:0): How to install and manage local modes.
-    -   [`configuration-sync-analysis.md`](guides/configuration-sync-analysis.md:0): Analysis of global vs. local mode configuration synchronization.
-    -   [`configuration-sync-completion-report.md`](guides/configuration-sync-completion-report.md:0): Report on configuration synchronization tasks.
-    -   [`mode-enhancement-implementation-log.md`](guides/mode-enhancement-implementation-log.md:0): Log of mode enhancement implementations.
+## 📋 Examples
 
-## ConPort Integration
+**Practical usage examples:**
 
-The Roo AI Modes documentation is integrated with ConPort for seamless knowledge logging and retrieval. You can use the ConPort Maintenance mode to record and explore project decisions, patterns, glossary terms, and progress directly from these documents:
+- [`examples/`](examples/) - Complete directory of usage examples
+- [`examples/conport-maintenance-examples.md`](examples/conport-maintenance-examples.md) - Knowledge maintenance examples
+- [`examples/prompt-enhancer-examples.md`](examples/prompt-enhancer-examples.md) - Prompt enhancement examples
+- [`examples/docs-creator-examples.md`](examples/docs-creator-examples.md) - Documentation creation examples
 
-- Log documentation decisions and rationales using ConPort Maintenance: see [`docs/guides/conport-maintenance-guide.md`](docs/guides/conport-maintenance-guide.md:0).
-- Explore and manage project glossary terms via ConPort custom data in the `ProjectGlossary` category.
-- View practical examples of ConPort usage in documentation workflows: [`docs/examples/conport-maintenance-examples.md`](docs/examples/conport-maintenance-examples.md:0).
-## Navigating the Documentation
+## 🔍 Analysis
 
--   Start with this `README.md` to understand the overall structure.
--   If you're looking for how to use a specific mode, check the `guides/` and `examples/` directories.
--   For deeper understanding of design choices or enhancements, refer to the `analysis/` directory or specific logs in `guides/`.
+**Design and implementation analysis:**
 
-We encourage you to explore these documents to make the most of the Roo AI modes.
+- [`analysis/`](analysis/) - Technical analysis documents
+- [`analysis/sync-system-diagnostic-strategy.md`](analysis/sync-system-diagnostic-strategy.md) - System diagnostics
+- [`analysis/enhanced-prompt-enhancer-design.md`](analysis/enhanced-prompt-enhancer-design.md) - Design analysis
+
+## 🗺️ Navigation Tips
+
+**Quick ways to find what you need:**
+
+1. **New User?** → Start with [`getting-started/`](getting-started/)
+2. **Specific Task?** → Check [`guides/`](guides/) for how-to guides
+3. **Technical Details?** → Look in [`reference/`](reference/) or [`frameworks/`](frameworks/)
+4. **Having Issues?** → Visit [`troubleshooting/`](troubleshooting/)
+5. **Advanced Features?** → Explore [`advanced/`](advanced/)
+6. **Need Examples?** → Browse [`examples/`](examples/)
+
+## 🤝 Contributing to Documentation
+
+Found something unclear or want to add documentation? See [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for guidelines on contributing to this project.
+
+---
+
+**Need help finding something?** All documentation includes cross-references and clear navigation paths to related topics.

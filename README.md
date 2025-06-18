@@ -30,14 +30,16 @@ That's it. No complex setup required.
 - [`modes/`](modes/) - Drop these into your Roo setup and go
 - [`modes/hybrid/`](modes/hybrid/) - Advanced modes that combine multiple capabilities
 
-### 📖 Simple Guides  
-- [`SIMPLE_SETUP.md`](SIMPLE_SETUP.md) - 5-minute setup walkthrough
-- [`WHAT_EACH_MODE_DOES.md`](WHAT_EACH_MODE_DOES.md) - Plain English mode explanations
-- [`COMMON_WORKFLOWS.md`](COMMON_WORKFLOWS.md) - Typical usage patterns
+### 📖 Documentation
+- [`docs/getting-started/`](docs/getting-started/) - Setup walkthroughs and quick start guides
+- [`docs/guides/`](docs/guides/) - How-to guides and common workflows
+- [`docs/reference/`](docs/reference/) - Technical references and detailed explanations
+- [`docs/troubleshooting/`](docs/troubleshooting/) - FAQ and problem-solving guides
 
 ### 🛠️ For Advanced Users
 - [`utilities/`](utilities/) - Under-the-hood enhancements
-- [`docs/`](docs/) - Technical documentation
+- [`docs/frameworks/`](docs/frameworks/) - Advanced framework architectures
+- [`docs/advanced/`](docs/advanced/) - Advanced topics and integrations
 - [`templates/`](templates/) - Create your own modes
 
 ## 🎯 Popular Use Cases
@@ -70,21 +72,21 @@ This means your AI gets smarter about your specific work, not just general topic
 
 **Want to create new modes?** Use the templates in [`templates/`](templates/) as starting points.
 
-**Want to see how it works?** Check [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) for a simple technical overview.
+**Want to see how it works?** Check [`docs/reference/HOW_IT_WORKS.md`](docs/reference/HOW_IT_WORKS.md) for a simple technical overview.
 
 ## 📚 Documentation Levels
 
-- **Just want to use it?** → [`SIMPLE_SETUP.md`](SIMPLE_SETUP.md)
-- **Want to understand each mode?** → [`WHAT_EACH_MODE_DOES.md`](WHAT_EACH_MODE_DOES.md)  
-- **Ready to customize?** → [`CUSTOMIZATION_GUIDE.md`](CUSTOMIZATION_GUIDE.md)
-- **Need technical details?** → [`docs/`](docs/) directory
+- **Just want to use it?** → [`docs/getting-started/SIMPLE_SETUP.md`](docs/getting-started/SIMPLE_SETUP.md)
+- **Want to understand each mode?** → [`docs/guides/WHAT_EACH_MODE_DOES.md`](docs/guides/WHAT_EACH_MODE_DOES.md)
+- **Ready to customize?** → [`docs/guides/CUSTOMIZATION_GUIDE.md`](docs/guides/CUSTOMIZATION_GUIDE.md)
+- **Need technical details?** → [`docs/reference/`](docs/reference/) and [`docs/frameworks/`](docs/frameworks/)
 
 ## 🤝 Getting Help
 
-**Quick Questions**: Check [`FAQ.md`](FAQ.md)
-**Setup Issues**: See [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md)  
-**Advanced Topics**: Browse [`docs/guides/`](docs/guides/)
+**Quick Questions**: Check [`docs/troubleshooting/FAQ.md`](docs/troubleshooting/FAQ.md)
+**Setup Issues**: See [`docs/troubleshooting/TROUBLESHOOTING.md`](docs/troubleshooting/TROUBLESHOOTING.md)
+**Advanced Topics**: Browse [`docs/guides/`](docs/guides/) and [`docs/advanced/`](docs/advanced/)
 
 ---
 
-**Ready?** Start with [`SIMPLE_SETUP.md`](SIMPLE_SETUP.md) to get going in 5 minutes.
+**Ready?** Start with [`docs/getting-started/SIMPLE_SETUP.md`](docs/getting-started/SIMPLE_SETUP.md) to get going in 5 minutes.
