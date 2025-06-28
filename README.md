@@ -1,3 +1,8 @@
+
+> [!WARNING]
+> This repository is being rewritten in a new repository [ekartashov/roo-conport-modes-v2](https://github.com/ekartashov/roo-conport-modes-v2). For now, this repository serves as a source of ideas and a place to store modes created so far. The created modes work better with conport, but the architecture is too messy to continue developing in this repo.
+
+
 # Roo Modes Collection
 
 **Supercharge your AI assistant with specialized modes for different tasks**
